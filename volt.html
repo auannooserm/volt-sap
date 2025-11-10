@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>โพลโหวต</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
+
+  body {
+    font-family: 'Kanit', sans-serif;
+    background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .container {
+    background: #fff;
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    width: 350px;
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+
+  .container:hover { transform: translateY(-5px); }
+
+  h2 { margin-bottom: 25px; color: #333; }
+
+  button {
+    width: 100%;
+    padding: 14px 0;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    font-weight: 600;
+  }
+
+  button:hover { transform: scale(1.05); opacity: 0.9; }
+
+  .option-a { background: #FF6B6B; }
+  .option-b { background: #4ECDC4; }
+  .option-c { background: #556270; }
+  .admin-btn { background: #1E90FF; }
+
+  #thankYou, #resultsPage, #adminPanel {
+    display: none;
+  }
+
+  .bar {
+    height: 25px;
+    border-radius: 8px;
+    margin: 10px 0;
+    color: white;
+    line-height: 25px;
+    padding-left: 10px;
+    font-weight: 600;
+    transition: width 0.5s ease;
+  }
+
+  .bar-A { background: #FF6B6B; }
+  .bar-B { background: #4ECDC4; }
+  .bar-C { background: #556270; }
+
+  .bar-container {
+    background: #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- หน้าโหวต -->
+<div id="votePage" class="container">
+  <h2>โหวตตัวเลือกที่คุณชอบ</h2>
+  <button class="option-a" onclick="vote('ตัวเลือก A')">ตัวเลือก A</button>
+  <button class="option-b" onclick="vote('ตัวเลือก B')">ตัวเลือก B</button>
+  <button class="option-c" onclick="vote('ตัวเลือก C')">ตัวเลือก C</button>
+  <button class="admin-btn" onclick="promptAdmin()">Admin</button>
+</div>
+
+<!-- หน้า Thank You -->
+<div id="thankYou" class="container">
+  <h2>ขอบคุณสำหรับการโหวต! 😊</h2>
+  <button class="admin-btn" onclick="showResults()">ดูผลโหวตทั้งหมด</button>
+</div>
+
+<!-- หน้าแสดงผลโหวต -->
+<div id="resultsPage" class="container">
+  <h2>ผลโหวตทั้งหมด</h2>
+  <div class="bar-container"><div id="barA" class="bar bar-A">ตัวเลือก A: 0 คะแนน</div></div>
+  <div class="bar-container"><div id="barB" class="bar bar-B">ตัวเลือก B: 0 คะแนน</div></div>
+  <div class="bar-container"><div id="barC" class="bar bar-C">ตัวเลือก C: 0 คะแนน</div></div>
+  <button class="admin-btn" onclick="backToVote()">กลับไปหน้าโหวต</button>
+</div>
+
+<!-- หน้า Admin -->
+<div id="adminPanel" class="container">
+  <h2>Admin Panel</h2>
+  <button class="admin-btn" onclick="adminOpenPoll()">เปิดโหวต</button>
+  <button class="admin-btn" onclick="adminClosePoll()">ปิดโหวต</button>
+  <button class="admin-btn" onclick="adminShowResults()">ดูผลโหวต</button>
+  <button class="admin-btn" onclick="adminResetPoll()">รีเซ็ตโพล</button>
+  <button class="admin-btn" onclick="closeAdminPanel()">กลับ</button>
+</div>
+
+<script>
+let votes = { 'ตัวเลือก A': 0, 'ตัวเลือก B': 0, 'ตัวเลือก C': 0 };
+let pollOpen = true;
+
+// กำหนดรหัสผ่าน Admin
+const ADMIN_PASSWORD = "1234";
+
+// ตรวจสอบรหัสผ่านก่อนเข้าสู่ Admin Panel
+function promptAdmin() {
+  const pass = prompt("กรุณากรอกรหัส Admin:");
+  if(pass === ADMIN_PASSWORD) {
+    showAdminPanel();
+  } else if(pass !== null) {
+    alert("รหัสผ่านไม่ถูกต้อง");
+  }
+}
+
+// แสดง Admin Panel
+function showAdminPanel() {
+  document.getElementById('votePage').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+}
+
+// ปิด Admin Panel
+function closeAdminPanel() {
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('votePage').style.display = 'block';
+}
+
+// ฟังก์ชันโหวต
+function vote(option) {
+  if(!pollOpen) {
+    alert("โหวตปิดแล้วครับ");
+    return;
+  }
+  if(localStorage.getItem('voted')) {
+    alert("คุณโหวตไปแล้วครับ");
+    return;
+  }
+
+  votes[option]++;
+  localStorage.setItem('voted', 'true');
+
+  document.getElementById('votePage').style.display = 'none';
+  document.getElementById('thankYou').style.display = 'block';
+}
+
+// แสดงผลโหวต
+function showResults() {
+  document.getElementById('thankYou').style.display = 'none';
+  document.getElementById('resultsPage').style.display = 'block';
+  displayResults();
+}
+
+// กลับไปหน้าโหวต
+function backToVote() {
+  document.getElementById('resultsPage').style.display = 'none';
+  document.getElementById('votePage').style.display = 'block';
+}
+
+// Admin Controls
+function adminOpenPoll() { 
+  pollOpen = true; 
+  alert("เปิดโหวตแล้ว"); 
+}
+function adminClosePoll() { 
+  pollOpen = false; 
+  alert("ปิดโหวตแล้ว"); 
+}
+function adminResetPoll() { 
+  votes = {'ตัวเลือก A':0,'ตัวเลือก B':0,'ตัวเลือก C':0};
+  localStorage.removeItem('voted');
+  alert("รีเซ็ตโหวตแล้ว"); 
+}
+function adminShowResults() { 
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('resultsPage').style.display = 'block';
+  displayResults();
+}
+
+// แสดงผลลัพธ์ในกราฟ
+function displayResults() {
+  const totalVotes = votes['ตัวเลือก A'] + votes['ตัวเลือก B'] + votes['ตัวเลือก C'];
+  function updateBar(barId, option) {
+    const bar = document.getElementById(barId);
+    const percent = totalVotes === 0 ? 0 : Math.round((votes[option] / totalVotes) * 100);
+    bar.style.width = percent + '%';
+    bar.textContent = option + ': ' + votes[option] + ' คะแนน (' + percent + '%)';
+  }
+  updateBar('barA', 'ตัวเลือก A');
+  updateBar('barB', 'ตัวเลือก B');
+  updateBar('barC', 'ตัวเลือก C');
+}
+</script>
+
+</body>
+</html>
