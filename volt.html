@@ -47,13 +47,14 @@
 </head>
 <body>
 
-<!-- หน้าแรก -->
+<!-- หน้าเลือก -->
 <div id="homePage" class="container">
   <h2>โหวตประกวดการแต่งกาย 🥰</h2>
   <button class="team-btn" onclick="showTeam()">แบบทีม</button>
   <button class="solo-btn" onclick="showSolo()">แบบเดียว</button>
   <button class="admin-btn" onclick="promptAdmin()">Admin</button>
   <p id="visitorCount" style="margin-top:15px;color:#555;font-weight:600;"></p>
+  <p id="onlineCount" style="margin-top:5px;color:#2a9d8f;font-weight:600;"></p>
 </div>
 
 <!-- โหวตทีม -->
@@ -68,7 +69,7 @@
 
 <!-- โหวตเดี่ยว -->
 <div id="votePageSolo" class="container">
-  <h2>โหวตการแต่งกายแบบเดียว</h2>
+  <h2>โหวตการแต่งการแบบเดียว</h2>
   <div id="soloButtons"></div>
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
@@ -111,7 +112,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// === CONFIG ของคุณ (นำของจริงจาก Firebase มาใส่ตรงนี้) ===
+// === CONFIG ของคุณ (ใส่ของจริงจาก Firebase) ===
 const firebaseConfig = {
     apiKey: "AIzaSyC_AHNf_oRZ08m7gyjVyAo3jF3wotaLV1c",
     authDomain: "sap-vote.firebaseapp.com",
@@ -125,11 +126,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// === ตัวแปร ===
 let pollOpen = true;
-const ADMIN_PASSWORD = "1234";
+const ADMIN_PASSWORD = "p@ssw0rd";
 
-// === ซ่อน/แสดงหน้า ===
+// === การแสดงผลแต่ละหน้า ===
 function hideAll(){
   ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults']
     .forEach(id=>document.getElementById(id).style.display='none');
@@ -137,10 +137,7 @@ function hideAll(){
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 
 // === โหมดโหวต ===
-function showTeam(){
-  hideAll(); localStorage.setItem('currentMode','team');
-  document.getElementById('votePageTeam').style.display='block';
-}
+function showTeam(){ hideAll(); localStorage.setItem('currentMode','team'); document.getElementById('votePageTeam').style.display='block'; }
 function showSolo(){
   hideAll(); localStorage.setItem('currentMode','solo');
   const soloDiv=document.getElementById('soloButtons');
@@ -156,7 +153,7 @@ function showSolo(){
   document.getElementById('votePageSolo').style.display='block';
 }
 
-// === ระบบโหวต ===
+// === โหวต ===
 function vote(option){
   if(!pollOpen){ alert("โหวตปิดแล้วครับ"); return; }
   const mode=localStorage.getItem('currentMode');
@@ -206,6 +203,8 @@ function adminResetPoll(){
   if(confirm("แน่ใจหรือไม่ว่าจะรีเซ็ตโพลทั้งหมด?")){
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
+    db.ref('views').remove();
+    db.ref('onlineUsers').remove();
     localStorage.clear();
     alert("รีเซ็ตเรียบร้อย");
   }
@@ -219,14 +218,12 @@ function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.d
 
 // === ระบบนับจำนวนผู้เข้าชม ===
 function countVisitor() {
-  // กันการนับซ้ำในเครื่องเดิม
   if (!localStorage.getItem('countedVisit')) {
     const viewRef = db.ref('views/count');
     viewRef.transaction(v => (v || 0) + 1);
     localStorage.setItem('countedVisit', 'true');
   }
 
-  // ดึงค่ามาแสดงผล
   db.ref('views/count').on('value', snapshot => {
     const count = snapshot.val() || 0;
     const counterDiv = document.getElementById('visitorCount');
@@ -234,8 +231,39 @@ function countVisitor() {
   });
 }
 
+// === ระบบนับจำนวนคนออนไลน์ ===
+function trackOnlineUsers() {
+  const userRef = db.ref('onlineUsers/' + generateUserId());
+  const connectedRef = db.ref('.info/connected');
+  connectedRef.on('value', (snap) => {
+    if (snap.val() === true) {
+      userRef.set(true);
+      userRef.onDisconnect().remove();
+    }
+  });
+
+  const countRef = db.ref('onlineUsers');
+  countRef.on('value', (snapshot) => {
+    const data = snapshot.val() || {};
+    const count = Object.keys(data).length;
+    const counter = document.getElementById('onlineCount');
+    if (counter) counter.textContent = `🟢 ออนไลน์อยู่ตอนนี้ ${count} คน`;
+  });
+}
+
+function generateUserId() {
+  let uid = localStorage.getItem('userSessionId');
+  if (!uid) {
+    uid = 'user_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('userSessionId', uid);
+  }
+  return uid;
+}
+
+// === เมื่อโหลดหน้าเว็บ ===
 window.onload = () => {
   countVisitor();
+  trackOnlineUsers();
 };
 </script>
 </body>
