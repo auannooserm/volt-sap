@@ -196,17 +196,30 @@ function promptAdmin(){
   else if(pass!==null){ alert("รหัสผ่านไม่ถูกต้อง"); }
 }
 function closeAdminPanel(){ backHome(); }
-function adminOpenPoll(){ pollOpen=true; alert("เปิดโหวตแล้ว"); }
-function adminClosePoll(){ pollOpen=false; alert("ปิดโหวตแล้ว"); }
+
+function adminOpenPoll(){
+  pollOpen=true;
+  db.ref('pollStatus').set(true);
+  alert("เปิดโหวตแล้ว");
+}
+
+function adminClosePoll(){
+  pollOpen=false;
+  db.ref('pollStatus').set(false);
+  alert("ปิดโหวตแล้ว");
+}
+
 function adminResetPoll(){
   if(confirm("แน่ใจหรือไม่ว่าจะรีเซ็ตโพลทั้งหมด?")){
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
     db.ref('onlineUsers').remove();
+    db.ref('pollStatus').set(true); // ตั้งค่าเปิดใหม่หลังรีเซ็ต
     localStorage.clear();
     alert("รีเซ็ตเรียบร้อย");
   }
 }
+
 function showAdminResults(){
   hideAll(); document.getElementById('adminResults').style.display='block';
   displayResults('team','adminResultTeam');
@@ -243,9 +256,14 @@ function generateUserId() {
   return uid;
 }
 
-// === เริ่มทำงาน ===
+// === โหลดสถานะ poll จาก Firebase ===
 window.onload = () => {
   trackOnlineUsers();
+  db.ref('pollStatus').on('value', snapshot => {
+    const status = snapshot.val();
+    pollOpen = status === true;
+    console.log("สถานะโหวต:", pollOpen ? "เปิดอยู่" : "ปิดอยู่");
+  });
 };
 </script>
 </body>
