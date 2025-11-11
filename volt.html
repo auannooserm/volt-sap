@@ -76,17 +76,16 @@
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxC8f6ruRqvPMrYPtJnFGdMiZJw1V9jh3U6O5kWKzAM7LYSo8vo_7F48_85-msw0AhI/exec"; // <-- ใส่ URL ของ Web App
-let votesTeam = JSON.parse(localStorage.getItem('votesTeam')) || {'ทีมงานอนอัว':0,'ทีมสวยให้ 5 มั่นหน้าให้ 10':0,'ทีมเจ้าภาพกฐิน':0,'ทีมคนดีไม่ห่างเหิน':0};
-let votesSolo = JSON.parse(localStorage.getItem('votesSolo')) || {};
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxC8f6ruRqvPMrYPtJnFGdMiZJw1V9jh3U6O5kWKzAM7LYSo8vo_7F48_85-msw0AhI/exec"; // <-- เปลี่ยนเป็น URL Web App ของคุณ
 let pollOpen = true;
 const ADMIN_PASSWORD = "1234";
 
 function hideAll(){ ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults'].forEach(id=>document.getElementById(id).style.display='none'); }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 function showTeam(){ hideAll(); localStorage.setItem('currentMode','team'); document.getElementById('votePageTeam').style.display='block'; }
-function showSolo(){ hideAll(); localStorage.setItem('currentMode','solo'); const soloDiv=document.getElementById('soloButtons'); soloDiv.innerHTML=""; for(let i=1;i<=10;i++){ const key="เบอร์ "+i; if(!(key in votesSolo)) votesSolo[key]=0; const btn=document.createElement('button'); btn.className='option-solo'; btn.textContent=key; btn.onclick=()=>vote(key); soloDiv.appendChild(btn); } document.getElementById('votePageSolo').style.display='block'; }
+function showSolo(){ hideAll(); localStorage.setItem('currentMode','solo'); const soloDiv=document.getElementById('soloButtons'); soloDiv.innerHTML=""; for(let i=1;i<=10;i++){ const key="เบอร์ "+i; const btn=document.createElement('button'); btn.className='option-solo'; btn.textContent=key; btn.onclick=()=>vote(key); soloDiv.appendChild(btn); } document.getElementById('votePageSolo').style.display='block'; }
 
+// ส่งโหวตไป Google Sheet
 async function sendVoteToSheet(option, mode, count){
   try{
     const response = await fetch(WEB_APP_URL, { method:'POST', body: JSON.stringify({option, mode, count}), headers:{'Content-Type':'application/json'} });
@@ -95,48 +94,53 @@ async function sendVoteToSheet(option, mode, count){
   }catch(err){ console.error("ส่งโหวตล้มเหลว:", err); }
 }
 
-function vote(option){
+// โหวต
+async function vote(option){
   if(!pollOpen){ alert("โหวตปิดแล้วครับ"); return; }
   const mode = localStorage.getItem('currentMode');
-  if(mode==='team' && localStorage.getItem('votedTeam')){ alert("คุณโหวตแบบทีมไปแล้วครับ"); return; }
-  if(mode==='solo' && localStorage.getItem('votedSolo')){ alert("คุณโหวตแบบเดียวไปแล้วครับ"); return; }
-  if(mode==='team'){ votesTeam[option]++; localStorage.setItem('votesTeam',JSON.stringify(votesTeam)); localStorage.setItem('votedTeam','true'); sendVoteToSheet(option, 'team', votesTeam[option]); }
-  else if(mode==='solo'){ votesSolo[option]++; localStorage.setItem('votesSolo',JSON.stringify(votesSolo)); localStorage.setItem('votedSolo','true'); sendVoteToSheet(option, 'solo', votesSolo[option]); }
+  const count = 1; // ใช้เป็น 1 vote ต่อครั้ง
+  await sendVoteToSheet(option, mode, count);
   hideAll(); document.getElementById('thankYou').style.display='block';
 }
 
-function showResults(type){ hideAll(); document.getElementById('resultsPage').style.display='block'; displayResults(type); }
-function displayResults(type){
-  const data = type==='team'?votesTeam:votesSolo;
-  const total = Object.values(data).reduce((a,b)=>a+b,0);
-  const container = document.getElementById('resultBars'); container.innerHTML="";
-  for(let opt in data){
-    const pct = total===0?0:Math.round((data[opt]/total)*100);
-    const color = type==='team'? '#457B9D':'#E76F51';
-    const div = document.createElement('div');
-    div.innerHTML=`<div style="text-align:left;margin-top:10px;">${opt}</div><div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div></div>`;
-    container.appendChild(div);
-  }
+// Admin ดึงผลจาก Google Sheet
+async function fetchAdminResults() {
+  try {
+    const response = await fetch(WEB_APP_URL);
+    const data = await response.json();
+    renderAdminResultsData(data);
+  } catch(err) { console.error("ไม่สามารถดึงผลโหวตจาก server:", err); }
+}
+
+function renderAdminResultsData(data){
+  const {team, solo} = data;
+  const render = (containerId, obj, color) => {
+    const container=document.getElementById(containerId); container.innerHTML="";
+    const total = Object.values(obj).reduce((a,b)=>a+b,0);
+    for(let opt in obj){
+      const pct = total===0?0:Math.round((obj[opt]/total)*100);
+      const div = document.createElement('div');
+      div.innerHTML=`<div style="text-align:left;margin-top:10px;">${opt}</div><div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${obj[opt]} คะแนน (${pct}%)</div></div>`;
+      container.appendChild(div);
+    }
+  };
+  render('adminResultTeam', team, '#A8DADC');
+  render('adminResultSolo', solo, '#F4A261');
+}
+
+function showAdminResults(){
+  hideAll();
+  document.getElementById('adminResults').style.display='block';
+  fetchAdminResults();
 }
 
 function promptAdmin(){ const pass=prompt("กรุณากรอกรหัส Admin:"); if(pass===ADMIN_PASSWORD){ hideAll(); document.getElementById('adminPanel').style.display='block'; } else if(pass!==null){ alert("รหัสผ่านไม่ถูกต้อง"); } }
 function closeAdminPanel(){ backHome(); }
 function adminOpenPoll(){ pollOpen=true; alert("เปิดโหวตแล้ว"); }
 function adminClosePoll(){ pollOpen=false; alert("ปิดโหวตแล้ว"); }
-function adminResetPoll(){ localStorage.clear(); votesTeam={'ทีมงานอนอัว':0,'ทีมสวยให้ 5 มั่นหน้าให้ 10':0,'ทีมเจ้าภาพกฐิน':0,'ทีมคนดีไม่ห่างเหิน':0}; votesSolo={}; alert("รีเซ็ตโพลแล้ว"); }
+function adminResetPoll(){ fetch(WEB_APP_URL, { method:'POST', body: JSON.stringify({option:"RESET", mode:"RESET", count:0}), headers:{'Content-Type':'application/json'} }).then(()=>alert("รีเซ็ตโพลแล้ว")); }
 function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
 
-function showAdminResults(){ hideAll(); document.getElementById('adminResults').style.display='block'; renderAdminResults('team','adminResultTeam'); renderAdminResults('solo','adminResultSolo'); }
-function renderAdminResults(type,divId){
-  const container=document.getElementById(divId); const data = type==='team'?votesTeam:votesSolo; const total = Object.values(data).reduce((a,b)=>a+b,0); container.innerHTML="";
-  for(let opt in data){
-    const pct = total===0?0:Math.round((data[opt]/total)*100);
-    const color = type==='team'? '#A8DADC':'#F4A261';
-    const div = document.createElement('div');
-    div.innerHTML=`<div style="text-align:left;margin-top:10px;">${opt}</div><div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div></div>`;
-    container.appendChild(div);
-  }
-}
 </script>
 </body>
 </html>
