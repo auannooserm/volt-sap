@@ -110,10 +110,10 @@
 <!-- หน้าโหวตทีม -->
 <div id="votePageTeam" class="container">
   <h2>โหวตการแต่งกายแบบทีม</h2>
-  <button class="option-team" onclick="vote('ทีม A')">ทีมงานอนอัว</button>
-  <button class="option-team" onclick="vote('ทีม B')">ทีมสวยให้ 5 มั่นหน้าให้ 10</button>
-  <button class="option-team" onclick="vote('ทีม C')">ทีมเจ้าภาพกฐิน</button>
-  <button class="option-team" onclick="vote('ทีม D')">ทีมคนดีไม่ห่างเหิน</button>
+  <button class="option-team" onclick="vote('ทีมงานอนอัว')">ทีมงานอนอัว</button>
+  <button class="option-team" onclick="vote('ทีมสวยให้ 5 มั่นหน้าให้ 10')">ทีมสวยให้ 5 มั่นหน้าให้ 10</button>
+  <button class="option-team" onclick="vote('ทีมเจ้าภาพกฐิน')">ทีมเจ้าภาพกฐิน</button>
+  <button class="option-team" onclick="vote('ทีมคนดีไม่ห่างเหิน')">ทีมคนดีไม่ห่างเหิน</button>
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
@@ -161,7 +161,7 @@
 </div>
 
 <script>
-let votesTeam = JSON.parse(localStorage.getItem('votesTeam')) || { 'ทีม A':0,'ทีม B':0,'ทีม C':0,'ทีม D':0 };
+let votesTeam = JSON.parse(localStorage.getItem('votesTeam')) || { 'ทีมงานอนอัว':0,'ทีมสวยให้ 5 มั่นหน้าให้ 10':0,'ทีมเจ้าภาพกฐิน':0,'ทีมคนดีไม่ห่างเหิน':0 };
 let votesSolo = JSON.parse(localStorage.getItem('votesSolo')) || {};
 let pollOpen = true;
 const ADMIN_PASSWORD = "1234";
@@ -249,7 +249,7 @@ function adminOpenPoll(){ pollOpen=true; alert("เปิดโหวตแล�
 function adminClosePoll(){ pollOpen=false; alert("ปิดโหวตแล้ว"); }
 function adminResetPoll(){
   localStorage.clear();
-  votesTeam={ 'ทีม A':0,'ทีม B':0,'ทีม C':0,'ทีม D':0 };
+  votesTeam={ 'ทีมงานอนอัว':0,'ทีมสวยให้ 5 มั่นหน้าให้ 10':0,'ทีมเจ้าภาพกฐิน':0,'ทีมคนดีไม่ห่างเหิน':0 };
   votesSolo={};
   alert("รีเซ็ตโพลแล้ว");
 }
