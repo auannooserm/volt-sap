@@ -53,7 +53,7 @@
   <button class="team-btn" onclick="showTeam()">แบบทีม</button>
   <button class="solo-btn" onclick="showSolo()">แบบเดียว</button>
   <button class="admin-btn" onclick="promptAdmin()">Admin</button>
-  <p id="visitorCount" style="margin-top:15px;color:#555;font-weight:600;"></p>
+  <!--<p id="visitorCount" style="margin-top:15px;color:#555;font-weight:600;"></p>-->
   <p id="onlineCount" style="margin-top:5px;color:#2a9d8f;font-weight:600;"></p>
 </div>
 
@@ -217,7 +217,7 @@ function showAdminResults(){
 function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
 
 // === ระบบนับจำนวนผู้เข้าชม ===
-function countVisitor() {
+/*function countVisitor() {
   if (!localStorage.getItem('countedVisit')) {
     const viewRef = db.ref('views/count');
     viewRef.transaction(v => (v || 0) + 1);
@@ -229,7 +229,7 @@ function countVisitor() {
     const counterDiv = document.getElementById('visitorCount');
     if (counterDiv) counterDiv.textContent = `👀 ผู้เข้าชมทั้งหมด ${count} คน`;
   });
-}
+}*/
 
 // === ระบบนับจำนวนคนออนไลน์ ===
 function trackOnlineUsers() {
