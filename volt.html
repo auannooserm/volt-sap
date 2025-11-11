@@ -5,49 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>โหวตประกวดการแต่งกาย</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
-body {
-  font-family: 'Kanit', sans-serif;
-  background: linear-gradient(135deg, #74ebd5, #ACB6E5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  padding: 15px;
-}
-.container {
-  background: #fff;
-  padding: 30px 25px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-}
-h2 { color: #333; font-size: 1.5em; margin-bottom: 15px; }
-button {
-  width: 100%; padding: 14px 0; margin: 10px 0;
-  border: none; border-radius: 10px; font-size: 1rem;
-  cursor: pointer; transition: all 0.3s ease; font-weight: 600;
-}
-button:hover { transform: scale(1.03); opacity: 0.95; }
-.team-btn { background: #7097c5; color: #fff; }
-.solo-btn { background: #F4A261; color: #fff; }
-.admin-btn { background: #6C63FF; color: #fff; }
-.option-team { background: #7d92c7; color: #fff; }
-.option-solo { background: #A6C3E4; color: #fff; }
-.bar { height: 28px; border-radius: 8px; margin: 10px 0;
-  color: white; line-height: 28px; padding-left: 10px;
-  font-weight: 600; transition: width 0.5s ease; font-size: 0.9rem; }
-.bar-container { background: #e9ecef; border-radius: 8px; overflow: hidden; }
-#votePageTeam,#votePageSolo,#thankYou,#resultsPage,#adminPanel,#adminResults { display:none; }
-@media (max-width:480px){ .container{padding:25px 20px;} h2{font-size:1.3em;} }
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
+  body { font-family: 'Kanit', sans-serif; background: linear-gradient(135deg, #74ebd5, #ACB6E5); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px;}
+  .container { background: #fff; padding: 30px 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 420px; text-align: center; }
+  h2 { color: #333; font-size: 1.5em; margin-bottom: 15px; }
+  button { width: 100%; padding: 14px 0; margin: 10px 0; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
+  button:hover { transform: scale(1.03); opacity: 0.95; }
+  .team-btn { background: #7097c5; color: #fff; }
+  .solo-btn { background: #F4A261; color: #fff; }
+  .admin-btn { background: #6C63FF; color: #fff; }
+  .option-team { background: #7d92c7; color: #fff; }
+  .option-solo { background: #A6C3E4; color: #fff; }
+  .bar { height: 28px; border-radius: 8px; margin: 10px 0; color: white; line-height: 28px; padding-left: 10px; font-weight: 600; transition: width 0.5s ease; font-size: 0.9rem; }
+  .bar-container { background: #e9ecef; border-radius: 8px; overflow: hidden; }
+  #votePageTeam,#votePageSolo,#thankYou,#resultsPage,#adminPanel,#adminResults { display:none; }
+  @media (max-width:480px){ .container{padding:25px 20px;} h2{font-size:1.3em;} }
 </style>
 </head>
 <body>
 
-<!-- หน้าเลือกประเภท -->
 <div id="homePage" class="container">
   <h2>โหวตประกวดการแต่งกาย 🥰</h2>
   <button class="team-btn" onclick="showTeam()">แบบทีม</button>
@@ -55,37 +31,41 @@ button:hover { transform: scale(1.03); opacity: 0.95; }
   <button class="admin-btn" onclick="promptAdmin()">Admin</button>
 </div>
 
-<!-- หน้าโหวตทีม -->
 <div id="votePageTeam" class="container">
   <h2>โหวตการแต่งกายแบบทีม</h2>
-  <button class="option-team" onclick="vote('team','ทีมงานอนอัว')">ทีมงานอนอัว</button>
-  <button class="option-team" onclick="vote('team','ทีมสวยให้ 5 มั่นหน้าให้ 10')">ทีมสวยให้ 5 มั่นหน้าให้ 10</button>
-  <button class="option-team" onclick="vote('team','ทีมเจ้าภาพกฐิน')">ทีมเจ้าภาพกฐิน</button>
-  <button class="option-team" onclick="vote('team','ทีมคนดีไม่ห่างเหิน')">ทีมคนดีไม่ห่างเหิน</button>
+  <button class="option-team" onclick="vote('ทีมงานอนอัว')">ทีมงานอนอัว</button>
+  <button class="option-team" onclick="vote('ทีมสวยให้ 5 มั่นหน้าให้ 10')">ทีมสวยให้ 5 มั่นหน้าให้ 10</button>
+  <button class="option-team" onclick="vote('ทีมเจ้าภาพกฐิน')">ทีมเจ้าภาพกฐิน</button>
+  <button class="option-team" onclick="vote('ทีมคนดีไม่ห่างเหิน')">ทีมคนดีไม่ห่างเหิน</button>
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
-<!-- หน้าโหวตเดี่ยว -->
 <div id="votePageSolo" class="container">
   <h2>โหวตการแต่งการแบบเดียว</h2>
   <div id="soloButtons"></div>
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
-<!-- หน้าขอบคุณ -->
 <div id="thankYou" class="container">
   <h2>ขอบคุณสำหรับการโหวต! 😊</h2>
   <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
 </div>
 
-<!-- หน้า Admin -->
+<div id="resultsPage" class="container">
+  <h2>ผลโหวตประกวดการแต่งกาย</h2>
+  <div id="resultBars"></div>
+  <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
+</div>
+
 <div id="adminPanel" class="container">
   <h2>Admin Panel</h2>
+  <button class="admin-btn" onclick="adminOpenPoll()">เปิดโหวต</button>
+  <button class="admin-btn" onclick="adminClosePoll()">ปิดโหวต</button>
   <button class="admin-btn" onclick="showAdminResults()">ดูผลโหวตทั้งหมด</button>
+  <button class="admin-btn" onclick="adminResetPoll()">รีเซ็ตโพล</button>
   <button class="admin-btn" onclick="closeAdminPanel()">กลับ</button>
 </div>
 
-<!-- หน้า Admin แสดงผลรวม -->
 <div id="adminResults" class="container">
   <h2>ผลโหวตทั้งหมด</h2>
   <h3 style="color:#457B9D;">แบบทีม</h3>
@@ -96,72 +76,64 @@ button:hover { transform: scale(1.03); opacity: 0.95; }
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxC8f6ruRqvPMrYPtJnFGdMiZJw1V9jh3U6O5kWKzAM7LYSo8vo_7F48_85-msw0AhI/exec"; // 👈 เปลี่ยนตรงนี้
+const WEB_APP_URL = "https://script.google.com/macros/library/d/19BUIJu32JVo-Z6eJSWavTV2-MJ-OPNX11NzgLp5cU0AStnLnjaJ78I9A/4"; // <-- ใส่ URL ของ Web App
+let votesTeam = JSON.parse(localStorage.getItem('votesTeam')) || {'ทีมงานอนอัว':0,'ทีมสวยให้ 5 มั่นหน้าให้ 10':0,'ทีมเจ้าภาพกฐิน':0,'ทีมคนดีไม่ห่างเหิน':0};
+let votesSolo = JSON.parse(localStorage.getItem('votesSolo')) || {};
+let pollOpen = true;
+const ADMIN_PASSWORD = "1234";
 
-function hideAll(){
-  ['homePage','votePageTeam','votePageSolo','thankYou','adminPanel','adminResults']
-    .forEach(id=>document.getElementById(id).style.display='none');
-}
+function hideAll(){ ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults'].forEach(id=>document.getElementById(id).style.display='none'); }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
+function showTeam(){ hideAll(); localStorage.setItem('currentMode','team'); document.getElementById('votePageTeam').style.display='block'; }
+function showSolo(){ hideAll(); localStorage.setItem('currentMode','solo'); const soloDiv=document.getElementById('soloButtons'); soloDiv.innerHTML=""; for(let i=1;i<=10;i++){ const key="เบอร์ "+i; if(!(key in votesSolo)) votesSolo[key]=0; const btn=document.createElement('button'); btn.className='option-solo'; btn.textContent=key; btn.onclick=()=>vote(key); soloDiv.appendChild(btn); } document.getElementById('votePageSolo').style.display='block'; }
 
-function showTeam(){ hideAll(); document.getElementById('votePageTeam').style.display='block'; }
-function showSolo(){
-  hideAll();
-  const soloDiv=document.getElementById('soloButtons');
-  soloDiv.innerHTML="";
-  for(let i=1;i<=10;i++){
-    const btn=document.createElement('button');
-    btn.className='option-solo';
-    btn.textContent="เบอร์ "+i;
-    btn.onclick=()=>vote('solo',"เบอร์ "+i);
-    soloDiv.appendChild(btn);
+async function sendVoteToSheet(option, mode, count){
+  try{
+    const response = await fetch(WEB_APP_URL, { method:'POST', body: JSON.stringify({option, mode, count}), headers:{'Content-Type':'application/json'} });
+    const result = await response.json();
+    console.log("ส่งโหวตไป Google Sheets:", result);
+  }catch(err){ console.error("ส่งโหวตล้มเหลว:", err); }
+}
+
+function vote(option){
+  if(!pollOpen){ alert("โหวตปิดแล้วครับ"); return; }
+  const mode = localStorage.getItem('currentMode');
+  if(mode==='team' && localStorage.getItem('votedTeam')){ alert("คุณโหวตแบบทีมไปแล้วครับ"); return; }
+  if(mode==='solo' && localStorage.getItem('votedSolo')){ alert("คุณโหวตแบบเดียวไปแล้วครับ"); return; }
+  if(mode==='team'){ votesTeam[option]++; localStorage.setItem('votesTeam',JSON.stringify(votesTeam)); localStorage.setItem('votedTeam','true'); sendVoteToSheet(option, 'team', votesTeam[option]); }
+  else if(mode==='solo'){ votesSolo[option]++; localStorage.setItem('votesSolo',JSON.stringify(votesSolo)); localStorage.setItem('votedSolo','true'); sendVoteToSheet(option, 'solo', votesSolo[option]); }
+  hideAll(); document.getElementById('thankYou').style.display='block';
+}
+
+function showResults(type){ hideAll(); document.getElementById('resultsPage').style.display='block'; displayResults(type); }
+function displayResults(type){
+  const data = type==='team'?votesTeam:votesSolo;
+  const total = Object.values(data).reduce((a,b)=>a+b,0);
+  const container = document.getElementById('resultBars'); container.innerHTML="";
+  for(let opt in data){
+    const pct = total===0?0:Math.round((data[opt]/total)*100);
+    const color = type==='team'? '#457B9D':'#E76F51';
+    const div = document.createElement('div');
+    div.innerHTML=`<div style="text-align:left;margin-top:10px;">${opt}</div><div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div></div>`;
+    container.appendChild(div);
   }
-  document.getElementById('votePageSolo').style.display='block';
 }
 
-// === การโหวต ===
-function vote(type, option){
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    body: JSON.stringify({ type: type, option: option }),
-    headers: { "Content-Type": "application/json" },
-  })
-  .then(()=>{ hideAll(); document.getElementById('thankYou').style.display='block'; })
-  .catch(()=>alert("เกิดข้อผิดพลาดในการส่งข้อมูล"));
-}
-
-// === Admin ===
-function promptAdmin(){
-  const pass=prompt("กรุณากรอกรหัส Admin:");
-  if(pass==="1234"){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
-  else if(pass!==null){ alert("รหัสผ่านไม่ถูกต้อง"); }
-}
+function promptAdmin(){ const pass=prompt("กรุณากรอกรหัส Admin:"); if(pass===ADMIN_PASSWORD){ hideAll(); document.getElementById('adminPanel').style.display='block'; } else if(pass!==null){ alert("รหัสผ่านไม่ถูกต้อง"); } }
 function closeAdminPanel(){ backHome(); }
+function adminOpenPoll(){ pollOpen=true; alert("เปิดโหวตแล้ว"); }
+function adminClosePoll(){ pollOpen=false; alert("ปิดโหวตแล้ว"); }
+function adminResetPoll(){ localStorage.clear(); votesTeam={'ทีมงานอนอัว':0,'ทีมสวยให้ 5 มั่นหน้าให้ 10':0,'ทีมเจ้าภาพกฐิน':0,'ทีมคนดีไม่ห่างเหิน':0}; votesSolo={}; alert("รีเซ็ตโพลแล้ว"); }
 function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
 
-// === แสดงผลรวมจาก Google Sheet ===
-function showAdminResults(){
-  hideAll();
-  document.getElementById('adminResults').style.display='block';
-  fetch(SCRIPT_URL)
-    .then(r=>r.json())
-    .then(data=>{
-      renderResults(data.team,'adminResultTeam','#A8DADC');
-      renderResults(data.solo,'adminResultSolo','#F4A261');
-    })
-    .catch(()=>alert("ไม่สามารถโหลดข้อมูลได้"));
-}
-
-function renderResults(data,divId,color){
-  const container=document.getElementById(divId);
-  container.innerHTML="";
-  const total=Object.values(data).reduce((a,b)=>a+b,0);
+function showAdminResults(){ hideAll(); document.getElementById('adminResults').style.display='block'; renderAdminResults('team','adminResultTeam'); renderAdminResults('solo','adminResultSolo'); }
+function renderAdminResults(type,divId){
+  const container=document.getElementById(divId); const data = type==='team'?votesTeam:votesSolo; const total = Object.values(data).reduce((a,b)=>a+b,0); container.innerHTML="";
   for(let opt in data){
-    const pct=total===0?0:Math.round((data[opt]/total)*100);
-    const div=document.createElement('div');
-    div.innerHTML=`
-      <div style="text-align:left;margin-top:10px;">${opt}</div>
-      <div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div></div>`;
+    const pct = total===0?0:Math.round((data[opt]/total)*100);
+    const color = type==='team'? '#A8DADC':'#F4A261';
+    const div = document.createElement('div');
+    div.innerHTML=`<div style="text-align:left;margin-top:10px;">${opt}</div><div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div></div>`;
     container.appendChild(div);
   }
 }
