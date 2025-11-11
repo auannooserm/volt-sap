@@ -74,7 +74,12 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxYhP12iGeMjxMgpZgp
 let pollOpen = true;
 const ADMIN_PASSWORD = "1234";
 
-function hideAll(){ ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults'].forEach(id=>document.getElementById(id).style.display='none'); }
+function hideAll(){ 
+  ['homePage','votePageTeam','votePageSolo','thankYou','adminPanel','adminResults'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+}
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 function showTeam(){ hideAll(); localStorage.setItem('currentMode','team'); document.getElementById('votePageTeam').style.display='block'; }
 function showSolo(){
