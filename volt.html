@@ -51,12 +51,6 @@
   <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
 </div>
 
-<div id="resultsPage" class="container">
-  <h2>ผลโหวตประกวดการแต่งกาย</h2>
-  <div id="resultBars"></div>
-  <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
-</div>
-
 <div id="adminPanel" class="container">
   <h2>Admin Panel</h2>
   <button class="admin-btn" onclick="adminOpenPoll()">เปิดโหวต</button>
@@ -76,19 +70,39 @@
 </div>
 
 <script>
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxC8f6ruRqvPMrYPtJnFGdMiZJw1V9jh3U6O5kWKzAM7LYSo8vo_7F48_85-msw0AhI/exec"; // <-- เปลี่ยนเป็น URL Web App ของคุณ
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxC8f6ruRqvPMrYPtJnFGdMiZJw1V9jh3U6O5kWKzAM7LYSo8vo_7F48_85-msw0AhI/exec"; // <-- แก้เป็น URL ของคุณ
 let pollOpen = true;
 const ADMIN_PASSWORD = "1234";
 
 function hideAll(){ ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults'].forEach(id=>document.getElementById(id).style.display='none'); }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 function showTeam(){ hideAll(); localStorage.setItem('currentMode','team'); document.getElementById('votePageTeam').style.display='block'; }
-function showSolo(){ hideAll(); localStorage.setItem('currentMode','solo'); const soloDiv=document.getElementById('soloButtons'); soloDiv.innerHTML=""; for(let i=1;i<=10;i++){ const key="เบอร์ "+i; const btn=document.createElement('button'); btn.className='option-solo'; btn.textContent=key; btn.onclick=()=>vote(key); soloDiv.appendChild(btn); } document.getElementById('votePageSolo').style.display='block'; }
+function showSolo(){
+  hideAll(); 
+  localStorage.setItem('currentMode','solo'); 
+  const soloDiv=document.getElementById('soloButtons'); 
+  soloDiv.innerHTML=""; 
+  for(let i=1;i<=10;i++){
+    const key="เบอร์ "+i; 
+    const btn=document.createElement('button'); 
+    btn.className='option-solo'; 
+    btn.textContent=key; 
+    btn.onclick=()=>vote(key); 
+    soloDiv.appendChild(btn); 
+  } 
+  document.getElementById('votePageSolo').style.display='block'; 
+}
 
 // ส่งโหวตไป Google Sheet
 async function sendVoteToSheet(option, mode, count){
   try{
-    const response = await fetch(WEB_APP_URL, { method:'POST', body: JSON.stringify({option, mode, count}), headers:{'Content-Type':'application/json'} });
+    const response = await fetch(WEB_APP_URL, { 
+      method:'POST', 
+      headers:{'Content-Type':'application/json'}, 
+      body: JSON.stringify({option, mode, count}),
+      mode:'cors',
+      credentials:'omit'
+    });
     const result = await response.json();
     console.log("ส่งโหวตไป Google Sheets:", result);
   }catch(err){ console.error("ส่งโหวตล้มเหลว:", err); }
@@ -98,15 +112,16 @@ async function sendVoteToSheet(option, mode, count){
 async function vote(option){
   if(!pollOpen){ alert("โหวตปิดแล้วครับ"); return; }
   const mode = localStorage.getItem('currentMode');
-  const count = 1; // ใช้เป็น 1 vote ต่อครั้ง
+  const count = 1; 
   await sendVoteToSheet(option, mode, count);
-  hideAll(); document.getElementById('thankYou').style.display='block';
+  hideAll(); 
+  document.getElementById('thankYou').style.display='block';
 }
 
 // Admin ดึงผลจาก Google Sheet
 async function fetchAdminResults() {
   try {
-    const response = await fetch(WEB_APP_URL);
+    const response = await fetch(WEB_APP_URL, { method:'GET', mode:'cors', credentials:'omit' });
     const data = await response.json();
     renderAdminResultsData(data);
   } catch(err) { console.error("ไม่สามารถดึงผลโหวตจาก server:", err); }
@@ -128,19 +143,13 @@ function renderAdminResultsData(data){
   render('adminResultSolo', solo, '#F4A261');
 }
 
-function showAdminResults(){
-  hideAll();
-  document.getElementById('adminResults').style.display='block';
-  fetchAdminResults();
-}
-
+function showAdminResults(){ hideAll(); document.getElementById('adminResults').style.display='block'; fetchAdminResults(); }
 function promptAdmin(){ const pass=prompt("กรุณากรอกรหัส Admin:"); if(pass===ADMIN_PASSWORD){ hideAll(); document.getElementById('adminPanel').style.display='block'; } else if(pass!==null){ alert("รหัสผ่านไม่ถูกต้อง"); } }
 function closeAdminPanel(){ backHome(); }
 function adminOpenPoll(){ pollOpen=true; alert("เปิดโหวตแล้ว"); }
 function adminClosePoll(){ pollOpen=false; alert("ปิดโหวตแล้ว"); }
-function adminResetPoll(){ fetch(WEB_APP_URL, { method:'POST', body: JSON.stringify({option:"RESET", mode:"RESET", count:0}), headers:{'Content-Type':'application/json'} }).then(()=>alert("รีเซ็ตโพลแล้ว")); }
+function adminResetPoll(){ fetch(WEB_APP_URL, { method:'POST', body: JSON.stringify({option:"RESET", mode:"RESET", count:0}), headers:{'Content-Type':'application/json'}, mode:'cors', credentials:'omit' }).then(()=>alert("รีเซ็ตโพลแล้ว")); }
 function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
-
 </script>
 </body>
 </html>
