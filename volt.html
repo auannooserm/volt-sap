@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>โพลโหวต</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โหวตประกวดการแต่งกาย</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
 
@@ -12,95 +13,128 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
+    padding: 15px;
   }
 
   .container {
     background: #fff;
-    padding: 40px 30px;
+    padding: 30px 25px;
     border-radius: 15px;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-    width: 350px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
     text-align: center;
-    transition: transform 0.3s ease;
   }
 
-  .container:hover { transform: translateY(-5px); }
+  h2 {
+    color: #333;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+  }
 
-  h2 { margin-bottom: 25px; color: #333; }
-
+  /* ปุ่มพื้นฐาน */
   button {
     width: 100%;
     padding: 14px 0;
     margin: 10px 0;
     border: none;
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 10px;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    color: white;
     font-weight: 600;
   }
+  button:hover { transform: scale(1.03); opacity: 0.95; }
 
-  button:hover { transform: scale(1.05); opacity: 0.9; }
-
-  .option-a { background: #FF6B6B; }
-  .option-b { background: #4ECDC4; }
-  .option-c { background: #556270; }
-  .admin-btn { background: #1E90FF; }
-
-  #thankYou, #resultsPage, #adminPanel {
-    display: none;
+  /* ปุ่มเลือกประเภท */
+  .team-btn {
+    background: #7097c5;
+    color: #fff;
+  }
+  .solo-btn {
+    background: #F4A261;
+    color: #fff;
+  }
+  .admin-btn {
+    background: #6C63FF;
+    color: #fff;
   }
 
+  /* ปุ่มตัวเลือกภายใน */
+  .option-team {
+    background: #7d92c7;
+    color: #fff;
+  }
+  .option-solo {
+    background: #A6C3E4;
+    color: #fff;
+  }
+
+  /* แถบผลโหวต */
   .bar {
-    height: 25px;
+    height: 28px;
     border-radius: 8px;
     margin: 10px 0;
     color: white;
-    line-height: 25px;
+    line-height: 28px;
     padding-left: 10px;
     font-weight: 600;
     transition: width 0.5s ease;
+    font-size: 0.9rem;
   }
-
-  .bar-A { background: #FF6B6B; }
-  .bar-B { background: #4ECDC4; }
-  .bar-C { background: #556270; }
-
   .bar-container {
-    background: #e0e0e0;
+    background: #e9ecef;
     border-radius: 8px;
     overflow: hidden;
   }
 
+  #votePageTeam,#votePageSolo,#thankYou,#resultsPage,#adminPanel,#adminResults { display:none; }
+
+  @media (max-width:480px){
+    .container{padding:25px 20px;} h2{font-size:1.3em;}
+  }
 </style>
 </head>
 <body>
 
-<!-- หน้าโหวต -->
-<div id="votePage" class="container">
-  <h2>โหวตตัวเลือกที่คุณชอบ</h2>
-  <button class="option-a" onclick="vote('ตัวเลือก A')">ตัวเลือก A</button>
-  <button class="option-b" onclick="vote('ตัวเลือก B')">ตัวเลือก B</button>
-  <button class="option-c" onclick="vote('ตัวเลือก C')">ตัวเลือก C</button>
+<!-- หน้าเลือกประเภท -->
+<div id="homePage" class="container">
+  <h2>โหวตประกวดการแต่งกาย 🥰</h2>
+  <button class="team-btn" onclick="showTeam()">แบบทีม</button>
+  <button class="solo-btn" onclick="showSolo()">แบบเดียว</button>
   <button class="admin-btn" onclick="promptAdmin()">Admin</button>
 </div>
 
-<!-- หน้า Thank You -->
+<!-- หน้าโหวตทีม -->
+<div id="votePageTeam" class="container">
+  <h2>โหวตการแต่งกายแบบทีม</h2>
+  <button class="option-team" onclick="vote('ทีม A')">ทีมงานอนอัว</button>
+  <button class="option-team" onclick="vote('ทีม B')">ทีมสวยให้ 5 มั่นหน้าให้ 10</button>
+  <button class="option-team" onclick="vote('ทีม C')">ทีมเจ้าภาพกฐิน</button>
+  <button class="option-team" onclick="vote('ทีม D')">ทีมคนดีไม่ห่างเหิน</button>
+  <button class="admin-btn" onclick="backHome()">กลับ</button>
+</div>
+
+<!-- หน้าโหวตเดี่ยว -->
+<div id="votePageSolo" class="container">
+  <h2>โหวตการแต่งการแบบเดียว</h2>
+  <div id="soloButtons"></div>
+  <button class="admin-btn" onclick="backHome()">กลับ</button>
+</div>
+
+<!-- หน้าขอบคุณ -->
 <div id="thankYou" class="container">
   <h2>ขอบคุณสำหรับการโหวต! 😊</h2>
-  <button class="admin-btn" onclick="showResults()">ดูผลโหวตทั้งหมด</button>
+  <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
 </div>
 
 <!-- หน้าแสดงผลโหวต -->
 <div id="resultsPage" class="container">
-  <h2>ผลโหวตทั้งหมด</h2>
-  <div class="bar-container"><div id="barA" class="bar bar-A">ตัวเลือก A: 0 คะแนน</div></div>
-  <div class="bar-container"><div id="barB" class="bar bar-B">ตัวเลือก B: 0 คะแนน</div></div>
-  <div class="bar-container"><div id="barC" class="bar bar-C">ตัวเลือก C: 0 คะแนน</div></div>
-  <button class="admin-btn" onclick="backToVote()">กลับไปหน้าโหวต</button>
+  <h2>ผลโหวตประกวดการแต่งกาย</h2>
+  <div id="resultBars"></div>
+  <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
 </div>
 
 <!-- หน้า Admin -->
@@ -108,105 +142,141 @@
   <h2>Admin Panel</h2>
   <button class="admin-btn" onclick="adminOpenPoll()">เปิดโหวต</button>
   <button class="admin-btn" onclick="adminClosePoll()">ปิดโหวต</button>
-  <button class="admin-btn" onclick="adminShowResults()">ดูผลโหวต</button>
+  <button class="admin-btn" onclick="showAdminResults()">ดูผลโหวตทั้งหมด</button>
   <button class="admin-btn" onclick="adminResetPoll()">รีเซ็ตโพล</button>
   <button class="admin-btn" onclick="closeAdminPanel()">กลับ</button>
 </div>
 
-<script>
-let votes = { 'ตัวเลือก A': 0, 'ตัวเลือก B': 0, 'ตัวเลือก C': 0 };
-let pollOpen = true;
+<!-- หน้า Admin แสดงผลรวม -->
+<div id="adminResults" class="container">
+  <h2>ผลโหวตทั้งหมด</h2>
 
-// กำหนดรหัสผ่าน Admin
+  <h3 style="color:#457B9D;">แบบทีม</h3>
+  <div id="adminResultTeam"></div>
+
+  <h3 style="color:#E76F51;margin-top:25px;">แบบเดียว</h3>
+  <div id="adminResultSolo"></div>
+
+  <button class="admin-btn" onclick="backToAdmin()">กลับ</button>
+</div>
+
+<script>
+let votesTeam = JSON.parse(localStorage.getItem('votesTeam')) || { 'ทีม A':0,'ทีม B':0,'ทีม C':0,'ทีม D':0 };
+let votesSolo = JSON.parse(localStorage.getItem('votesSolo')) || {};
+let pollOpen = true;
 const ADMIN_PASSWORD = "1234";
 
-// ตรวจสอบรหัสผ่านก่อนเข้าสู่ Admin Panel
-function promptAdmin() {
-  const pass = prompt("กรุณากรอกรหัส Admin:");
-  if(pass === ADMIN_PASSWORD) {
-    showAdminPanel();
-  } else if(pass !== null) {
-    alert("รหัสผ่านไม่ถูกต้อง");
+// === การแสดงผลแต่ละหน้า ===
+function hideAll(){
+  ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults']
+    .forEach(id=>document.getElementById(id).style.display='none');
+}
+function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
+
+// === โหมดโหวต ===
+function showTeam(){
+  hideAll();
+  localStorage.setItem('currentMode','team');
+  document.getElementById('votePageTeam').style.display='block';
+}
+function showSolo(){
+  hideAll();
+  localStorage.setItem('currentMode','solo');
+  const soloDiv=document.getElementById('soloButtons');
+  soloDiv.innerHTML="";
+  for(let i=1;i<=10;i++){
+    const key="เบอร์ "+i;
+    if(!(key in votesSolo)) votesSolo[key]=0;
+    const btn=document.createElement('button');
+    btn.className='option-solo';
+    btn.textContent=key;
+    btn.onclick=()=>vote(key);
+    soloDiv.appendChild(btn);
+  }
+  document.getElementById('votePageSolo').style.display='block';
+}
+
+// === การโหวต ===
+function vote(option){
+  if(!pollOpen){ alert("โหวตปิดแล้วครับ"); return; }
+
+  const mode=localStorage.getItem('currentMode');
+  if(mode==='team' && localStorage.getItem('votedTeam')){ alert("คุณโหวตแบบทีมไปแล้วครับ"); return; }
+  if(mode==='solo' && localStorage.getItem('votedSolo')){ alert("คุณโหวตแบบเดียวไปแล้วครับ"); return; }
+
+  if(mode==='team'){
+    votesTeam[option]++; localStorage.setItem('votesTeam',JSON.stringify(votesTeam));
+    localStorage.setItem('votedTeam','true');
+  }else if(mode==='solo'){
+    votesSolo[option]++; localStorage.setItem('votesSolo',JSON.stringify(votesSolo));
+    localStorage.setItem('votedSolo','true');
+  }
+
+  hideAll();
+  document.getElementById('thankYou').style.display='block';
+}
+
+// === แสดงผลโหวตทั่วไป ===
+function showResults(type){
+  hideAll();
+  document.getElementById('resultsPage').style.display='block';
+  displayResults(type);
+}
+function displayResults(type){
+  const data= type==='team'?votesTeam:votesSolo;
+  const total=Object.values(data).reduce((a,b)=>a+b,0);
+  const container=document.getElementById('resultBars');
+  container.innerHTML="";
+  for(let opt in data){
+    const pct=total===0?0:Math.round((data[opt]/total)*100);
+    const color = type==='team' ? '#457B9D' : '#E76F51';
+    const div=document.createElement('div');
+    div.innerHTML=`
+      <div style="text-align:left;margin-top:10px;">${opt}</div>
+      <div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div></div>`;
+    container.appendChild(div);
   }
 }
 
-// แสดง Admin Panel
-function showAdminPanel() {
-  document.getElementById('votePage').style.display = 'none';
-  document.getElementById('adminPanel').style.display = 'block';
+// === Admin ===
+function promptAdmin(){
+  const pass=prompt("กรุณากรอกรหัส Admin:");
+  if(pass===ADMIN_PASSWORD){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
+  else if(pass!==null){ alert("รหัสผ่านไม่ถูกต้อง"); }
 }
-
-// ปิด Admin Panel
-function closeAdminPanel() {
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('votePage').style.display = 'block';
+function closeAdminPanel(){ backHome(); }
+function adminOpenPoll(){ pollOpen=true; alert("เปิดโหวตแล้ว"); }
+function adminClosePoll(){ pollOpen=false; alert("ปิดโหวตแล้ว"); }
+function adminResetPoll(){
+  localStorage.clear();
+  votesTeam={ 'ทีม A':0,'ทีม B':0,'ทีม C':0,'ทีม D':0 };
+  votesSolo={};
+  alert("รีเซ็ตโพลแล้ว");
 }
+function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
 
-// ฟังก์ชันโหวต
-function vote(option) {
-  if(!pollOpen) {
-    alert("โหวตปิดแล้วครับ");
-    return;
+// === แสดงผลรวมในหน้า Admin ===
+function showAdminResults(){
+  hideAll();
+  document.getElementById('adminResults').style.display='block';
+  renderAdminResults('team', 'adminResultTeam');
+  renderAdminResults('solo', 'adminResultSolo');
+}
+function renderAdminResults(type, divId){
+  const container=document.getElementById(divId);
+  const data= type==='team'?votesTeam:votesSolo;
+  const total=Object.values(data).reduce((a,b)=>a+b,0);
+  container.innerHTML="";
+  for(let opt in data){
+    const pct=total===0?0:Math.round((data[opt]/total)*100);
+    const color = type==='team' ? '#A8DADC' : '#F4A261';
+    const div=document.createElement('div');
+    div.innerHTML=`
+      <div style="text-align:left;margin-top:10px;">${opt}</div>
+      <div class="bar-container"><div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div></div>`;
+    container.appendChild(div);
   }
-  if(localStorage.getItem('voted')) {
-    alert("คุณโหวตไปแล้วครับ");
-    return;
-  }
-
-  votes[option]++;
-  localStorage.setItem('voted', 'true');
-
-  document.getElementById('votePage').style.display = 'none';
-  document.getElementById('thankYou').style.display = 'block';
-}
-
-// แสดงผลโหวต
-function showResults() {
-  document.getElementById('thankYou').style.display = 'none';
-  document.getElementById('resultsPage').style.display = 'block';
-  displayResults();
-}
-
-// กลับไปหน้าโหวต
-function backToVote() {
-  document.getElementById('resultsPage').style.display = 'none';
-  document.getElementById('votePage').style.display = 'block';
-}
-
-// Admin Controls
-function adminOpenPoll() { 
-  pollOpen = true; 
-  alert("เปิดโหวตแล้ว"); 
-}
-function adminClosePoll() { 
-  pollOpen = false; 
-  alert("ปิดโหวตแล้ว"); 
-}
-function adminResetPoll() { 
-  votes = {'ตัวเลือก A':0,'ตัวเลือก B':0,'ตัวเลือก C':0};
-  localStorage.removeItem('voted');
-  alert("รีเซ็ตโหวตแล้ว"); 
-}
-function adminShowResults() { 
-  document.getElementById('adminPanel').style.display = 'none';
-  document.getElementById('resultsPage').style.display = 'block';
-  displayResults();
-}
-
-// แสดงผลลัพธ์ในกราฟ
-function displayResults() {
-  const totalVotes = votes['ตัวเลือก A'] + votes['ตัวเลือก B'] + votes['ตัวเลือก C'];
-  function updateBar(barId, option) {
-    const bar = document.getElementById(barId);
-    const percent = totalVotes === 0 ? 0 : Math.round((votes[option] / totalVotes) * 100);
-    bar.style.width = percent + '%';
-    bar.textContent = option + ': ' + votes[option] + ' คะแนน (' + percent + '%)';
-  }
-  updateBar('barA', 'ตัวเลือก A');
-  updateBar('barB', 'ตัวเลือก B');
-  updateBar('barC', 'ตัวเลือก C');
 }
 </script>
-
 </body>
 </html>
