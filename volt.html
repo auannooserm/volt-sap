@@ -53,8 +53,7 @@
   <button class="team-btn" onclick="showTeam()">แบบทีม</button>
   <button class="solo-btn" onclick="showSolo()">แบบเดียว</button>
   <button class="admin-btn" onclick="promptAdmin()">Admin</button>
-  <!--<p id="visitorCount" style="margin-top:15px;color:#555;font-weight:600;"></p>-->
-  <p id="onlineCount" style="margin-top:5px;color:#2a9d8f;font-weight:600;"></p>
+  <p id="onlineCount" style="margin-top:10px;color:#2a9d8f;font-weight:600;"></p>
 </div>
 
 <!-- โหวตทีม -->
@@ -112,24 +111,24 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// === CONFIG ของคุณ (ใส่ของจริงจาก Firebase) ===
+// === CONFIG ของคุณ ===
 const firebaseConfig = {
-    apiKey: "AIzaSyC_AHNf_oRZ08m7gyjVyAo3jF3wotaLV1c",
-    authDomain: "sap-vote.firebaseapp.com",
-    databaseURL: "https://sap-vote-default-rtdb.firebaseio.com",
-    projectId: "sap-vote",
-    storageBucket: "sap-vote.firebasestorage.app",
-    messagingSenderId: "377408911688",
-    appId: "1:377408911688:web:81e1764675c58697e19b7d",
-    measurementId: "G-Y64D0LFFLP"
-  };
+  apiKey: "AIzaSyC_AHNf_oRZ08m7gyjVyAo3jF3wotaLV1c",
+  authDomain: "sap-vote.firebaseapp.com",
+  databaseURL: "https://sap-vote-default-rtdb.firebaseio.com",
+  projectId: "sap-vote",
+  storageBucket: "sap-vote.firebasestorage.app",
+  messagingSenderId: "377408911688",
+  appId: "1:377408911688:web:81e1764675c58697e19b7d",
+  measurementId: "G-Y64D0LFFLP"
+};
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let pollOpen = true;
 const ADMIN_PASSWORD = "p@ssw0rd";
 
-// === การแสดงผลแต่ละหน้า ===
+// === ฟังก์ชันจัดการหน้า ===
 function hideAll(){
   ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults']
     .forEach(id=>document.getElementById(id).style.display='none');
@@ -203,7 +202,6 @@ function adminResetPoll(){
   if(confirm("แน่ใจหรือไม่ว่าจะรีเซ็ตโพลทั้งหมด?")){
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
-    db.ref('views').remove();
     db.ref('onlineUsers').remove();
     localStorage.clear();
     alert("รีเซ็ตเรียบร้อย");
@@ -216,22 +214,7 @@ function showAdminResults(){
 }
 function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
 
-// === ระบบนับจำนวนผู้เข้าชม ===
-/*function countVisitor() {
-  if (!localStorage.getItem('countedVisit')) {
-    const viewRef = db.ref('views/count');
-    viewRef.transaction(v => (v || 0) + 1);
-    localStorage.setItem('countedVisit', 'true');
-  }
-
-  db.ref('views/count').on('value', snapshot => {
-    const count = snapshot.val() || 0;
-    const counterDiv = document.getElementById('visitorCount');
-    if (counterDiv) counterDiv.textContent = `👀 ผู้เข้าชมทั้งหมด ${count} คน`;
-  });
-}*/
-
-// === ระบบนับจำนวนคนออนไลน์ ===
+// === ระบบนับจำนวน "คนออนไลน์ตอนนี้" ===
 function trackOnlineUsers() {
   const userRef = db.ref('onlineUsers/' + generateUserId());
   const connectedRef = db.ref('.info/connected');
@@ -260,9 +243,8 @@ function generateUserId() {
   return uid;
 }
 
-// === เมื่อโหลดหน้าเว็บ ===
+// === เริ่มทำงาน ===
 window.onload = () => {
-  countVisitor();
   trackOnlineUsers();
 };
 </script>
