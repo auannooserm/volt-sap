@@ -213,8 +213,8 @@ function adminResetPoll(){
   if(confirm("แน่ใจหรือไม่ว่าจะรีเซ็ตโพลทั้งหมด?")){
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
-    db.ref('onlineUsers').remove();
-    db.ref('pollStatus').set(true); // ตั้งค่าเปิดใหม่หลังรีเซ็ต
+    db.ref('pollStatus').set(true); // เปิดโหวตใหม่หลังรีเซ็ต
+    // ❌ ไม่ต้องลบ onlineUsers แล้ว
     localStorage.clear();
     alert("รีเซ็ตเรียบร้อย");
   }
