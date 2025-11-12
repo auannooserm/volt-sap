@@ -42,6 +42,7 @@
          transition: width 0.5s ease; font-size: 0.9rem; }
   .bar-container { background: #e9ecef; border-radius: 8px; overflow: hidden; }
   #votePageTeam,#votePageSolo,#thankYou,#resultsPage,#adminPanel,#adminResults { display:none; }
+  #pollStatusText { margin-top: 10px; font-weight: 600; }
   @media (max-width:480px){ .container{padding:25px 20px;} h2{font-size:1.3em;} }
 </style>
 </head>
@@ -54,6 +55,7 @@
   <button class="solo-btn" onclick="showSolo()">แบบเดียว</button>
   <button class="admin-btn" onclick="promptAdmin()">Admin</button>
   <p id="onlineCount" style="margin-top:10px;color:#2a9d8f;font-weight:600;"></p>
+  <p id="pollStatusText"></p>
 </div>
 
 <!-- โหวตทีม -->
@@ -92,7 +94,7 @@
   <button class="admin-btn" onclick="adminOpenPoll()">เปิดโหวต</button>
   <button class="admin-btn" onclick="adminClosePoll()">ปิดโหวต</button>
   <button class="admin-btn" onclick="showAdminResults()">ดูผลโหวตทั้งหมด</button>
-  <button class="admin-btn" onclick="adminResetPoll()">รีเซ็ตโพล</button>
+  <button class="admin-btn" onclick="adminResetPoll()">รีเซ็ตโพล (เริ่มรอบใหม่)</button>
   <button class="admin-btn" onclick="closeAdminPanel()">กลับ</button>
 </div>
 
@@ -126,6 +128,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let pollOpen = true;
+let pollRound = null; // เก็บรอบปัจจุบัน
 const ADMIN_PASSWORD = "p@ssw0rd";
 
 // === ฟังก์ชันจัดการหน้า ===
@@ -199,24 +202,23 @@ function closeAdminPanel(){ backHome(); }
 
 function adminOpenPoll(){
   pollOpen=true;
-  db.ref('pollStatus').set(true);
+  db.ref('pollStatus/open').set(true);
   alert("เปิดโหวตแล้ว");
 }
 
 function adminClosePoll(){
   pollOpen=false;
-  db.ref('pollStatus').set(false);
+  db.ref('pollStatus/open').set(false);
   alert("ปิดโหวตแล้ว");
 }
 
 function adminResetPoll(){
   if(confirm("แน่ใจหรือไม่ว่าจะรีเซ็ตโพลทั้งหมด?")){
+    const newRound = Date.now(); // สร้างรหัสรอบใหม่
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
-    db.ref('pollStatus').set(true); // เปิดโหวตใหม่หลังรีเซ็ต
-    // ❌ ไม่ต้องลบ onlineUsers แล้ว
-    localStorage.clear();
-    alert("รีเซ็ตเรียบร้อย");
+    db.ref('pollStatus').set({ open: true, round: newRound });
+    alert("รีเซ็ตโพลและเริ่มรอบใหม่เรียบร้อยแล้ว");
   }
 }
 
@@ -259,10 +261,29 @@ function generateUserId() {
 // === โหลดสถานะ poll จาก Firebase ===
 window.onload = () => {
   trackOnlineUsers();
-  db.ref('pollStatus').on('value', snapshot => {
-    const status = snapshot.val();
-    pollOpen = status === true;
-    console.log("สถานะโหวต:", pollOpen ? "เปิดอยู่" : "ปิดอยู่");
+
+  const pollRef = db.ref('pollStatus');
+  pollRef.on('value', snapshot => {
+    const status = snapshot.val() || { open: true, round: 0 };
+    pollOpen = status.open === true;
+    pollRound = status.round;
+
+    // ถ้าเป็นรอบใหม่ → ล้างสถานะโหวต
+    const savedRound = localStorage.getItem('voteRound');
+    if(savedRound !== String(pollRound)){
+      localStorage.removeItem('votedTeam');
+      localStorage.removeItem('votedSolo');
+      localStorage.setItem('voteRound', pollRound);
+    }
+
+    // อัปเดตข้อความสถานะบนหน้าแรก
+    const pollStatusText = document.getElementById('pollStatusText');
+    pollStatusText.textContent = pollOpen 
+      ? "🟢 ตอนนี้เปิดให้โหวตแล้ว" 
+      : "🔴 ขณะนี้ปิดโหวตอยู่";
+    pollStatusText.style.color = pollOpen ? "#2a9d8f" : "#e63946";
+
+    console.log("สถานะโหวต:", pollOpen ? "เปิดอยู่" : "ปิดอยู่", "รอบ:", pollRound);
   });
 };
 </script>
