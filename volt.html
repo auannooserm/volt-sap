@@ -48,22 +48,13 @@
 </head>
 <body>
 
-<!-- หน้าเลือก + Login -->
+<!-- หน้าเลือก -->
 <div id="homePage" class="container">
   <h2>โหวตประกวดการแต่งกาย 🥰</h2>
-  <div id="authSection">
-    <button id="loginBtn" onclick="login()">Login with Google</button>
-    <button id="logoutBtn" onclick="logout()" style="display:none;">Logout</button>
-    <p id="userName"></p>
-  </div>
-
-  <div id="voteOptions" style="display:none;">
-    <button class="team-btn" onclick="showTeam()">แบบทีม / Team</button>
-    <button class="solo-btn" onclick="showSolo()">แบบเดียว / Single</button>
-    <button class="admin-btn" onclick="promptAdmin()">Admin</button>
-  </div>
-
-  <p id="onlineCount" style="color:#2a9d8f;"></p>
+  <button class="team-btn" onclick="showTeam()">แบบทีม / Team</button>
+  <button class="solo-btn" onclick="showSolo()">แบบเดียว / Single</button>
+  <button class="admin-btn" onclick="promptAdmin()">Admin</button>
+  <p id="onlineCount" style="margin-top:10px;color:#2a9d8f;font-weight:600;"></p>
   <p id="pollStatusText"></p>
 </div>
 
@@ -71,15 +62,16 @@
 <div id="votePageTeam" class="container">
   <h2>โหวตการแต่งกายแบบทีม</h2>
   <button class="option-team" onclick="vote('ทีมงานอนอัว (QC)')">No.1 ทีมงานอนอัว (QC)</button>
-  <button class="option-team" onclick="vote('สวยให้ 5 มั่นหน้าให้ 10 (PAN)')">No.2 สวยให้ 5 มั่นหน้าให้ 10 (PAN)</button>
+  <button class="option-team" onclick="vote('สวยให้ 5 มั่นหน้าให้ 10 (PAN')">No.2 สวยให้ 5 มั่นหน้าให้ 10 (PAN)</button>
   <button class="option-team" onclick="vote('เจ้าภาพกฐิน (WH)')">No.3 เจ้าภาพกฐิน (WH)</button>
   <button class="option-team" onclick="vote('คนดีไม่ห่างเหิน (INJ)')">No.4 คนดีไม่ห่างเหิน (INJ)</button>
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
-<!-- โหวตแบบเดียว -->
+<!-- แบบเดียว -->
 <div id="votePageSolo" class="container">
   <h2>โหวตการแต่งกายแบบเดียว</h2>
+
   <button class="option-solo" onclick="vote('นายวันชัย วงษ์ละคร (PAN)')">No.1 นายวันชัย วงษ์ละคร (PAN)</button>
   <button class="option-solo" onclick="vote('นายอรุณ โสประดิษฐ์ (WH)')">No.2 นายอรุณ โสประดิษฐ์ (WH)</button>
   <button class="option-solo" onclick="vote('นายเจษฎากร กุติการ (WH)')">No.3 นายเจษฎากร กุติการ (WH)</button>
@@ -89,6 +81,7 @@
   <button class="option-solo" onclick="vote('น.ส.พรพรรณ วาสนา (PAN)')">No.7 น.ส.พรพรรณ วาสนา (PAN)</button>
   <button class="option-solo" onclick="vote('น.ส.อลิษา ม่วงคำพร (PAN)')">No.8 น.ส.อลิษา ม่วงคำพร (PAN)</button>
   <button class="option-solo" onclick="vote('นางพิศมัย รักญาติ (PAN)')">No.9 นางพิศมัย รักญาติ (PAN)</button>
+
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
@@ -101,6 +94,7 @@
 <!-- ผลโหวตทั้งหมด -->
 <div id="adminResults" class="container">
   <h2>ผลโหวตทั้งหมด</h2>
+
   <h3 style="color:#457B9D;">แบบทีม</h3>
   <div id="adminResultTeam"></div>
   <div id="summaryTeam" style="margin-top:15px;font-weight:600;"></div>
@@ -124,10 +118,10 @@
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+// === CONFIG ===
 const firebaseConfig = {
   apiKey: "AIzaSyC_AHNf_oRZ08m7gyjVyAo3jF3wotaLV1c",
   authDomain: "sap-vote.firebaseapp.com",
@@ -145,160 +139,199 @@ let pollOpen = true;
 let pollRound = null;
 const ADMIN_PASSWORD = "t1234";
 
-// ================== AUTH ==================
-function login(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
-    .then(result=>{
-      const user = result.user;
-      document.getElementById('userName').textContent = `สวัสดี, ${user.displayName}`;
-      document.getElementById('loginBtn').style.display='none';
-      document.getElementById('logoutBtn').style.display='inline-block';
-      document.getElementById('voteOptions').style.display='block';
-    }).catch(err=>alert(err.message));
-}
-
-function logout(){
-  firebase.auth().signOut().then(()=>{
-    document.getElementById('userName').textContent='';
-    document.getElementById('loginBtn').style.display='inline-block';
-    document.getElementById('logoutBtn').style.display='none';
-    document.getElementById('voteOptions').style.display='none';
-    backHome();
-  });
-}
-
-// ================== หน้า ==================
+// === หน้า ===
 function hideAll(){
   ['homePage','votePageTeam','votePageSolo','thankYou','adminPanel','adminResults']
     .forEach(id=>document.getElementById(id).style.display='none');
 }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
-function showTeam(){ hideAll(); localStorage.setItem('currentMode','team'); document.getElementById('votePageTeam').style.display='block'; }
-function showSolo(){ hideAll(); localStorage.setItem('currentMode','solo'); document.getElementById('votePageSolo').style.display='block'; }
 
-// ================== โหวต ==================
+// === Team ===
+function showTeam(){
+  hideAll();
+  localStorage.setItem('currentMode','team');
+  document.getElementById('votePageTeam').style.display='block';
+}
+
+// === Solo ===
+function showSolo(){
+  hideAll();
+  localStorage.setItem('currentMode','solo');
+  document.getElementById('votePageSolo').style.display='block';
+}
+
+// === Vote ===
 function vote(option){
   if(!pollOpen){ alert("โหวตปิดแล้ว"); return; }
 
-  const user = firebase.auth().currentUser;
-  if(!user){ alert("กรุณา Login ก่อนโหวต"); return; }
+  const mode = localStorage.getItem('currentMode');
+  if(mode==='team' && localStorage.getItem('votedTeam')){ alert("คุณโหวตแบบทีมแล้ว"); return; }
+  if(mode==='solo' && localStorage.getItem('votedSolo')){ alert("คุณโหวตแบบเดียวแล้ว"); return; }
 
-  const uid = user.uid;
-  const mode = localStorage.getItem('currentMode'); // team หรือ solo
-  const voteRef = db.ref(`userVotes/${uid}/${mode}`);
+  const path = mode==='team' ? 'votesTeam/'+option : 'votesSolo/'+option;
+  db.ref(path).transaction(v => (v || 0) + 1);
 
-  voteRef.get().then(snapshot=>{
-    if(snapshot.exists()){ alert("คุณโหวตแล้วในรอบนี้"); }
-    else{
-      const optionRef = mode==='team' ? db.ref(`votesTeam/${option}`) : db.ref(`votesSolo/${option}`);
-      optionRef.transaction(v=> (v||0)+1);
-      voteRef.set(option);
-      hideAll();
-      document.getElementById('thankYou').style.display='block';
+  if(mode==='team') localStorage.setItem('votedTeam','true');
+  else localStorage.setItem('votedSolo','true');
+
+  hideAll();
+  document.getElementById('thankYou').style.display='block';
+}
+
+// === แสดงผลโหวต ===
+function displayResults(type, containerId){
+  const ref = type==='team' ? db.ref('votesTeam') : db.ref('votesSolo');
+  const container = document.getElementById(containerId);
+  container.innerHTML = "กำลังโหลด...";
+
+  ref.once('value', snapshot => {
+    const data = snapshot.val() || {};
+    const total = Object.values(data).reduce((a,b)=>a+b,0);
+    container.innerHTML="";
+
+    for(let opt in data){
+      const pct = total===0 ? 0 : Math.round((data[opt]/total)*100);
+      const color = type==='team' ? '#457B9D' : '#E76F51';
+
+      container.innerHTML += `
+        <div style="text-align:left;margin-top:10px;">${opt}</div>
+        <div class="bar-container">
+          <div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div>
+        </div>
+      `;
     }
   });
 }
 
-// ================== Admin ==================
+// === สรุป TOP 3 ===
+function summarizeTopThree(type, summaryId){
+  const ref = type === 'team' ? db.ref('votesTeam') : db.ref('votesSolo');
+  const box = document.getElementById(summaryId);
+
+  ref.once('value', snapshot => {
+    const data = snapshot.val() || {};
+
+    const ranking = Object.entries(data)
+      .map(([name, score])=>({name, score}))
+      .sort((a,b)=>b.score - a.score);
+
+    if(ranking.length === 0){
+      box.innerHTML = "ยังไม่มีคะแนนโหวต";
+      return;
+    }
+
+    let html = "<div style='background:#f1faee;padding:12px;border-radius:10px;'>"
+             + "🏆 <b>สรุปผลอันดับ 1 – 3</b><br><br>";
+
+    ranking.slice(0,3).forEach((it, idx)=>{
+      const medals = ["🥇 อันดับ 1", "🥈 อันดับ 2", "🥉 อันดับ 3"];
+      html += `${medals[idx]} : <span style='color:#1d3557'>${it.name}</span> (${it.score} คะแนน)<br>`;
+    });
+    html += "</div>";
+
+    box.innerHTML = html;
+  });
+}
+
+// === Admin ===
 function promptAdmin(){
   const pass = prompt("กรุณากรอกรหัส Admin:");
-  if(pass === ADMIN_PASSWORD){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
-  else if(pass !== null){ alert("รหัสผ่านไม่ถูกต้อง"); }
+  if(pass === ADMIN_PASSWORD){
+    hideAll();
+    document.getElementById('adminPanel').style.display='block';
+  } else if(pass !== null){
+    alert("รหัสผ่านไม่ถูกต้อง");
+  }
 }
 
 function closeAdminPanel(){ backHome(); }
 function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
 
-function adminOpenPoll(){ pollOpen=true; db.ref('pollStatus/open').set(true); alert("เปิดโหวตแล้ว"); }
-function adminClosePoll(){ pollOpen=false; db.ref('pollStatus/open').set(false); alert("ปิดโหวตแล้ว"); }
+function adminOpenPoll(){
+  pollOpen = true;
+  db.ref('pollStatus/open').set(true);
+  alert("เปิดโหวตแล้ว");
+}
+
+function adminClosePoll(){
+  pollOpen = false;
+  db.ref('pollStatus/open').set(false);
+  alert("ปิดโหวตแล้ว");
+}
+
 function adminResetPoll(){
   if(confirm("ต้องการรีเซ็ตโพลทั้งหมดหรือไม่?")){
     const newRound = Date.now();
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
-    db.ref('userVotes').remove();
-    db.ref('pollStatus').set({ open:true, round:newRound });
+    db.ref('pollStatus').set({ open: true, round: newRound });
     alert("รีเซ็ตโพลเรียบร้อยแล้ว");
   }
 }
 
 function showAdminResults(){
-  hideAll(); document.getElementById('adminResults').style.display='block';
-  displayResults('team','adminResultTeam'); displayResults('solo','adminResultSolo');
-  summarizeTopThree('team','summaryTeam'); summarizeTopThree('solo','summarySolo');
+  hideAll();
+  document.getElementById('adminResults').style.display='block';
+
+  displayResults('team','adminResultTeam');
+  displayResults('solo','adminResultSolo');
+
+  summarizeTopThree('team','summaryTeam');
+  summarizeTopThree('solo','summarySolo');
 }
 
-// ================== แสดงผลโหวต ==================
-function displayResults(type, containerId){
-  const ref = type==='team' ? db.ref('votesTeam') : db.ref('votesSolo');
-  const container = document.getElementById(containerId);
-  container.innerHTML = "กำลังโหลด...";
-  ref.once('value', snapshot=>{
-    const data = snapshot.val()||{};
-    const total = Object.values(data).reduce((a,b)=>a+b,0);
-    container.innerHTML="";
-    for(let opt in data){
-      const pct = total===0 ? 0 : Math.round((data[opt]/total)*100);
-      const color = type==='team' ? '#457B9D' : '#E76F51';
-      container.innerHTML += `<div style="text-align:left;margin-top:10px;">${opt}</div>
-      <div class="bar-container">
-        <div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div>
-      </div>`;
-    }
-  });
-}
-
-function summarizeTopThree(type, summaryId){
-  const ref = type==='team' ? db.ref('votesTeam') : db.ref('votesSolo');
-  const box = document.getElementById(summaryId);
-  ref.once('value', snapshot=>{
-    const data = snapshot.val()||{};
-    const ranking = Object.entries(data).map(([name, score])=>({name, score})).sort((a,b)=>b.score-a.score);
-    if(ranking.length===0){ box.innerHTML="ยังไม่มีคะแนนโหวต"; return; }
-    let html="<div style='background:#f1faee;padding:12px;border-radius:10px;'>🏆 <b>สรุปผลอันดับ 1 – 3</b><br><br>";
-    ranking.slice(0,3).forEach((it,idx)=>{
-      const medals=["🥇 อันดับ 1","🥈 อันดับ 2","🥉 อันดับ 3"];
-      html+=`${medals[idx]} : <span style='color:#1d3557'>${it.name}</span> (${it.score} คะแนน)<br>`;
-    });
-    html+="</div>"; box.innerHTML=html;
-  });
-}
-
-// ================== ออนไลน์ ==================
+// === ออนไลน์ ===
 function trackOnlineUsers(){
   const userRef = db.ref('onlineUsers/' + generateUserId());
   const connectedRef = db.ref('.info/connected');
+
   connectedRef.on('value', snap => {
-    if(snap.val()===true){ userRef.set(true); userRef.onDisconnect().remove(); }
+    if(snap.val() === true){
+      userRef.set(true);
+      userRef.onDisconnect().remove();
+    }
   });
-  db.ref('onlineUsers').on('value', snapshot=>{
-    const data = snapshot.val()||{};
-    document.getElementById('onlineCount').textContent=`🟢 ออนไลน์อยู่ตอนนี้ ${Object.keys(data).length} คน`;
+
+  db.ref('onlineUsers').on('value', snapshot => {
+    const data = snapshot.val() || {};
+    const count = Object.keys(data).length;
+    document.getElementById('onlineCount').textContent =
+      `🟢 ออนไลน์อยู่ตอนนี้ ${count} คน`;
   });
 }
+
 function generateUserId(){
   let uid = localStorage.getItem('userSessionId');
-  if(!uid){ uid="user_"+Math.random().toString(36).substr(2,9); localStorage.setItem('userSessionId',uid); }
+  if(!uid){
+    uid = "user_" + Math.random().toString(36).substr(2,9);
+    localStorage.setItem('userSessionId', uid);
+  }
   return uid;
 }
 
-// ================== โหลดหน้า ==================
-window.onload = ()=>{
+// === โหลด poll status ===
+window.onload = () => {
   trackOnlineUsers();
+
   const pollRef = db.ref('pollStatus');
-  pollRef.on('value', snapshot=>{
-    const status = snapshot.val()||{open:true, round:0};
-    pollOpen=status.open; pollRound=status.round;
+  pollRef.on('value', snapshot => {
+    const status = snapshot.val() || { open:true, round:0 };
+    pollOpen = status.open;
+    pollRound = status.round;
+
     const savedRound = localStorage.getItem('voteRound');
     if(savedRound !== String(pollRound)){
-      localStorage.removeItem('votedTeam'); localStorage.removeItem('votedSolo'); localStorage.setItem('voteRound', pollRound);
+      localStorage.removeItem('votedTeam');
+      localStorage.removeItem('votedSolo');
+      localStorage.setItem('voteRound', pollRound);
     }
+
     const pollStatusText = document.getElementById('pollStatusText');
     pollStatusText.textContent = pollOpen ? "🟢 ตอนนี้เปิดให้โหวต" : "🔴 ขณะนี้ปิดโหวต";
     pollStatusText.style.color = pollOpen ? "#2a9d8f" : "#e63946";
   });
 };
 </script>
+
 </body>
 </html>
