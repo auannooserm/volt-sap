@@ -45,16 +45,10 @@
   #pollStatusText { margin-top: 10px; font-weight: 600; }
   @media (max-width:480px){ .container{padding:25px 20px;} h2{font-size:1.3em;} }
 </style>
-
-<!-- ⭐ FingerprintJS -->
-<script src="https://openfpcdn.io/fingerprintjs/v3"></script>
-
 </head>
 <body>
 
-<!-- ----------------------------------------------- -->
 <!-- หน้าเลือก -->
-<!-- ----------------------------------------------- -->
 <div id="homePage" class="container">
   <h2>โหวตประกวดการแต่งกาย 🥰</h2>
   <button class="team-btn" onclick="showTeam()">แบบทีม / Team</button>
@@ -64,9 +58,7 @@
   <p id="pollStatusText"></p>
 </div>
 
-<!-- ----------------------------------------------- -->
-<!-- แบบทีม -->
-<!-- ----------------------------------------------- -->
+<!-- โหวตทีม -->
 <div id="votePageTeam" class="container">
   <h2>โหวตการแต่งกายแบบทีม</h2>
   <button class="option-team" onclick="vote('ทีมงานอนอัว (QC)')">No.1 ทีมงานอนอัว (QC)</button>
@@ -76,9 +68,7 @@
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
-<!-- ----------------------------------------------- -->
-<!-- แบบเดี่ยว -->
-<!-- ----------------------------------------------- -->
+<!-- แบบเดียว -->
 <div id="votePageSolo" class="container">
   <h2>โหวตการแต่งกายแบบเดียว</h2>
 
@@ -95,17 +85,13 @@
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
-<!-- ----------------------------------------------- -->
 <!-- ขอบคุณ -->
-<!-- ----------------------------------------------- -->
 <div id="thankYou" class="container">
   <h2>ขอบคุณสำหรับการโหวต! 😊</h2>
   <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
 </div>
 
-<!-- ----------------------------------------------- -->
-<!-- ผลโหวต -->
-<!-- ----------------------------------------------- -->
+<!-- ผลโหวตทั้งหมด -->
 <div id="adminResults" class="container">
   <h2>ผลโหวตทั้งหมด</h2>
 
@@ -120,9 +106,7 @@
   <button class="admin-btn" onclick="backToAdmin()">กลับ</button>
 </div>
 
-<!-- ----------------------------------------------- -->
 <!-- Admin -->
-<!-- ----------------------------------------------- -->
 <div id="adminPanel" class="container">
   <h2>Admin Panel</h2>
   <button class="admin-btn" onclick="adminOpenPoll()">เปิดโหวต</button>
@@ -137,9 +121,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// ---------------------------------------------------------------------
-// CONFIG
-// ---------------------------------------------------------------------
+// === CONFIG ===
 const firebaseConfig = {
   apiKey: "AIzaSyC_AHNf_oRZ08m7gyjVyAo3jF3wotaLV1c",
   authDomain: "sap-vote.firebaseapp.com",
@@ -155,67 +137,48 @@ const db = firebase.database();
 
 let pollOpen = true;
 let pollRound = null;
-let deviceId = null;
 const ADMIN_PASSWORD = "t1234";
 
-// ---------------------------------------------------------------------
-// หน้า
-// ---------------------------------------------------------------------
+// === หน้า ===
 function hideAll(){
   ['homePage','votePageTeam','votePageSolo','thankYou','adminPanel','adminResults']
     .forEach(id=>document.getElementById(id).style.display='none');
 }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 
+// === Team ===
 function showTeam(){
   hideAll();
   localStorage.setItem('currentMode','team');
   document.getElementById('votePageTeam').style.display='block';
 }
+
+// === Solo ===
 function showSolo(){
   hideAll();
   localStorage.setItem('currentMode','solo');
   document.getElementById('votePageSolo').style.display='block';
 }
 
-// ---------------------------------------------------------------------
-// Vote (เวอร์ชันใหม่ - ป้องกันด้วย Fingerprint)
-// ---------------------------------------------------------------------
-async function vote(option){
-  if (!pollOpen){
-    alert("โหวตปิดแล้ว");
-    return;
-  }
-
-  if (!deviceId){
-    alert("กำลังโหลดข้อมูลอุปกรณ์ กรุณารอสักครู่...");
-    return;
-  }
+// === Vote ===
+function vote(option){
+  if(!pollOpen){ alert("โหวตปิดแล้ว"); return; }
 
   const mode = localStorage.getItem('currentMode');
-  const checkPath = `voted/${pollRound}/${mode}/${deviceId}`;
-  const votePath  = mode === 'team' ? `votesTeam/${option}` : `votesSolo/${option}`;
+  if(mode==='team' && localStorage.getItem('votedTeam')){ alert("คุณโหวตแบบทีมแล้ว"); return; }
+  if(mode==='solo' && localStorage.getItem('votedSolo')){ alert("คุณโหวตแบบเดียวแล้ว"); return; }
 
-  // ตรวจว่ามีการโหวตแล้วหรือไม่
-  const snap = await db.ref(checkPath).once('value');
-  if (snap.exists()){
-    alert("อุปกรณ์นี้โหวตหมวดนี้แล้ว");
-    return;
-  }
+  const path = mode==='team' ? 'votesTeam/'+option : 'votesSolo/'+option;
+  db.ref(path).transaction(v => (v || 0) + 1);
 
-  // เพิ่มคะแนน
-  db.ref(votePath).transaction(v => (v || 0) + 1);
-
-  // บันทึกว่าโหวตแล้ว
-  db.ref(checkPath).set(true);
+  if(mode==='team') localStorage.setItem('votedTeam','true');
+  else localStorage.setItem('votedSolo','true');
 
   hideAll();
   document.getElementById('thankYou').style.display='block';
 }
 
-// ---------------------------------------------------------------------
-// แสดงผลโหวต
-// ---------------------------------------------------------------------
+// === แสดงผลโหวต ===
 function displayResults(type, containerId){
   const ref = type==='team' ? db.ref('votesTeam') : db.ref('votesSolo');
   const container = document.getElementById(containerId);
@@ -240,9 +203,7 @@ function displayResults(type, containerId){
   });
 }
 
-// ---------------------------------------------------------------------
-// สรุป TOP 3
-// ---------------------------------------------------------------------
+// === สรุป TOP 3 ===
 function summarizeTopThree(type, summaryId){
   const ref = type === 'team' ? db.ref('votesTeam') : db.ref('votesSolo');
   const box = document.getElementById(summaryId);
@@ -272,9 +233,7 @@ function summarizeTopThree(type, summaryId){
   });
 }
 
-// ---------------------------------------------------------------------
-// Admin
-// ---------------------------------------------------------------------
+// === Admin ===
 function promptAdmin(){
   const pass = prompt("กรุณากรอกรหัส Admin:");
   if(pass === ADMIN_PASSWORD){
@@ -305,7 +264,6 @@ function adminResetPoll(){
     const newRound = Date.now();
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
-    db.ref('voted').remove();
     db.ref('pollStatus').set({ open: true, round: newRound });
     alert("รีเซ็ตโพลเรียบร้อยแล้ว");
   }
@@ -322,9 +280,7 @@ function showAdminResults(){
   summarizeTopThree('solo','summarySolo');
 }
 
-// ---------------------------------------------------------------------
-// ออนไลน์
-// ---------------------------------------------------------------------
+// === ออนไลน์ ===
 function trackOnlineUsers(){
   const userRef = db.ref('onlineUsers/' + generateUserId());
   const connectedRef = db.ref('.info/connected');
@@ -353,16 +309,8 @@ function generateUserId(){
   return uid;
 }
 
-// ---------------------------------------------------------------------
-// โหลด Fingerprint + Poll Status
-// ---------------------------------------------------------------------
-window.onload = async () => {
-
-  // โหลด Fingerprint
-  const fp = await FingerprintJS.load();
-  const result = await fp.get();
-  deviceId = result.visitorId;
-
+// === โหลด poll status ===
+window.onload = () => {
   trackOnlineUsers();
 
   const pollRef = db.ref('pollStatus');
@@ -371,12 +319,19 @@ window.onload = async () => {
     pollOpen = status.open;
     pollRound = status.round;
 
+    const savedRound = localStorage.getItem('voteRound');
+    if(savedRound !== String(pollRound)){
+      localStorage.removeItem('votedTeam');
+      localStorage.removeItem('votedSolo');
+      localStorage.setItem('voteRound', pollRound);
+    }
+
     const pollStatusText = document.getElementById('pollStatusText');
     pollStatusText.textContent = pollOpen ? "🟢 ตอนนี้เปิดให้โหวต" : "🔴 ขณะนี้ปิดโหวต";
     pollStatusText.style.color = pollOpen ? "#2a9d8f" : "#e63946";
   });
 };
-
 </script>
+
 </body>
 </html>
