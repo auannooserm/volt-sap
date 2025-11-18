@@ -36,7 +36,7 @@
   .solo-btn { background: #F4A261; color: #fff; }
   .admin-btn { background: #6C63FF; color: #fff; }
   .option-team { background: #7d92c7; color: #fff; }
-  .option-solo { background: #A6C3E4; color: #fff; }
+  .option-solo { background: #7776c2; color: #fff; }
   .bar { height: 28px; border-radius: 8px; margin: 10px 0; color: white;
          line-height: 28px; padding-left: 10px; font-weight: 600;
          transition: width 0.5s ease; font-size: 0.9rem; }
@@ -68,8 +68,10 @@
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
 
+<!-- แบบเดียว -->
 <div id="votePageSolo" class="container">
   <h2>โหวตการแต่งกายแบบเดียว</h2>
+
   <button class="option-solo" onclick="vote('นายวันชัย วงษ์ละคร (PAN)')">No.1 นายวันชัย วงษ์ละคร (PAN)</button>
   <button class="option-solo" onclick="vote('นายอรุณ โสประดิษฐ์ (WH)')">No.2 นายอรุณ โสประดิษฐ์ (WH)</button>
   <button class="option-solo" onclick="vote('นายเจษฎากร กุติการ (WH)')">No.3 นายเจษฎากร กุติการ (WH)</button>
@@ -79,16 +81,9 @@
   <button class="option-solo" onclick="vote('น.ส.พรพรรณ วาสนา (PAN)')">No.7 น.ส.พรพรรณ วาสนา (PAN)</button>
   <button class="option-solo" onclick="vote('น.ส.อลิษา ม่วงคำพร (PAN)')">No.8 น.ส.อลิษา ม่วงคำพร (PAN)</button>
   <button class="option-solo" onclick="vote('นางพิศมัย รักญาติ (PAN)')">No.9 นางพิศมัย รักญาติ (PAN)</button>
-		
+
   <button class="admin-btn" onclick="backHome()">กลับ</button>
 </div>
-
-<!-- โหวตแบบเดียว -->
-<!--<div id="votePageSolo" class="container">
-  <h2>โหวตการแต่งกายแบบเดียว</h2>
-  <div id="soloButtons"></div>
-  <button class="admin-btn" onclick="backHome()">กลับ</button>
-</div>-->
 
 <!-- ขอบคุณ -->
 <div id="thankYou" class="container">
@@ -96,11 +91,19 @@
   <button class="admin-btn" onclick="backHome()">กลับไปหน้าแรก</button>
 </div>
 
-<!-- ผลโหวต -->
-<div id="resultsPage" class="container">
-  <h2>ผลโหวตประกวดการแต่งกาย</h2>
-  <div id="resultBars"></div>
-  <button class="admin-btn" onclick="backHome()">กลับ</button>
+<!-- ผลโหวตทั้งหมด -->
+<div id="adminResults" class="container">
+  <h2>ผลโหวตทั้งหมด</h2>
+
+  <h3 style="color:#457B9D;">แบบทีม</h3>
+  <div id="adminResultTeam"></div>
+  <div id="summaryTeam" style="margin-top:15px;font-weight:600;"></div>
+
+  <h3 style="color:#E76F51;margin-top:25px;">แบบเดียว</h3>
+  <div id="adminResultSolo"></div>
+  <div id="summarySolo" style="margin-top:15px;font-weight:600;"></div>
+
+  <button class="admin-btn" onclick="backToAdmin()">กลับ</button>
 </div>
 
 <!-- Admin -->
@@ -111,16 +114,6 @@
   <button class="admin-btn" onclick="showAdminResults()">ดูผลโหวตทั้งหมด</button>
   <button class="admin-btn" onclick="adminResetPoll()">รีเซ็ตโพล (เริ่มรอบใหม่)</button>
   <button class="admin-btn" onclick="closeAdminPanel()">กลับ</button>
-</div>
-
-<!-- ผลโหวตทั้งหมด -->
-<div id="adminResults" class="container">
-  <h2>ผลโหวตทั้งหมด</h2>
-  <h3 style="color:#457B9D;">แบบทีม</h3>
-  <div id="adminResultTeam"></div>
-  <h3 style="color:#E76F51;margin-top:25px;">แบบเดียว</h3>
-  <div id="adminResultSolo"></div>
-  <button class="admin-btn" onclick="backToAdmin()">กลับ</button>
 </div>
 
 <!-- Firebase -->
@@ -148,57 +141,26 @@ const ADMIN_PASSWORD = "t1234";
 
 // === หน้า ===
 function hideAll(){
-  ['homePage','votePageTeam','votePageSolo','thankYou','resultsPage','adminPanel','adminResults']
+  ['homePage','votePageTeam','votePageSolo','thankYou','adminPanel','adminResults']
     .forEach(id=>document.getElementById(id).style.display='none');
 }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 
-// === Team Mode ===
+// === Team ===
 function showTeam(){
   hideAll();
   localStorage.setItem('currentMode','team');
   document.getElementById('votePageTeam').style.display='block';
 }
-//=== Team Solo ===
+
+// === Solo ===
 function showSolo(){
   hideAll();
   localStorage.setItem('currentMode','solo');
   document.getElementById('votePageSolo').style.display='block';
 }
 
-// === 🔥 Solo Mode ===
-/*function showSolo(){
-  hideAll();
-  localStorage.setItem('currentMode','solo');
-
-  const soloDiv = document.getElementById('soloButtons');
-  soloDiv.innerHTML = "";
-
-  const soloOptions = [
-    "No_1 นายวันชัย วงษ์ละคร (PAN)",
-    "No_2 นายอรุณ โสประดิษฐ์ (WH)",
-    "No_3 นายเจษฎากร กุติการ (WH)",
-    "No_4 นายธนกฤต อินไชยา (INJ)",
-	"No_5 นายพิพัฒน์พงษ์ สุขเพิ่ม (QC)",
-	"No_6 น.ส.พรภิรมย์ ไสสมบัติ (QC)",
-	"No_7 น.ส.จรรยา วงเหิม (WH)",
-	"No_8 น.ส.พรพรรณ วาสนา (PAN)",
-	"No_9 น.ส.อลิษา ม่วงคำพร (PAN)",
-	"No_10 นางพิศมัย รักญาติ (PAN)"
-  ];
-
-  soloOptions.forEach(opt => {
-    const btn = document.createElement('button');
-    btn.className = 'option-solo';
-    btn.textContent = opt;
-    btn.onclick = () => vote(opt);
-    soloDiv.appendChild(btn);
-  });
-
-  document.getElementById('votePageSolo').style.display='block';
-}*/
-
-// === โหวต ===
+// === Vote ===
 function vote(option){
   if(!pollOpen){ alert("โหวตปิดแล้ว"); return; }
 
@@ -241,6 +203,36 @@ function displayResults(type, containerId){
   });
 }
 
+// === สรุป TOP 3 ===
+function summarizeTopThree(type, summaryId){
+  const ref = type === 'team' ? db.ref('votesTeam') : db.ref('votesSolo');
+  const box = document.getElementById(summaryId);
+
+  ref.once('value', snapshot => {
+    const data = snapshot.val() || {};
+
+    const ranking = Object.entries(data)
+      .map(([name, score])=>({name, score}))
+      .sort((a,b)=>b.score - a.score);
+
+    if(ranking.length === 0){
+      box.innerHTML = "ยังไม่มีคะแนนโหวต";
+      return;
+    }
+
+    let html = "<div style='background:#f1faee;padding:12px;border-radius:10px;'>"
+             + "🏆 <b>สรุปผลอันดับ 1 – 3</b><br><br>";
+
+    ranking.slice(0,3).forEach((it, idx)=>{
+      const medals = ["🥇 อันดับ 1", "🥈 อันดับ 2", "🥉 อันดับ 3"];
+      html += `${medals[idx]} : <span style='color:#1d3557'>${it.name}</span> (${it.score} คะแนน)<br>`;
+    });
+    html += "</div>";
+
+    box.innerHTML = html;
+  });
+}
+
 // === Admin ===
 function promptAdmin(){
   const pass = prompt("กรุณากรอกรหัส Admin:");
@@ -251,6 +243,7 @@ function promptAdmin(){
     alert("รหัสผ่านไม่ถูกต้อง");
   }
 }
+
 function closeAdminPanel(){ backHome(); }
 function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
 
@@ -279,11 +272,15 @@ function adminResetPoll(){
 function showAdminResults(){
   hideAll();
   document.getElementById('adminResults').style.display='block';
+
   displayResults('team','adminResultTeam');
   displayResults('solo','adminResultSolo');
+
+  summarizeTopThree('team','summaryTeam');
+  summarizeTopThree('solo','summarySolo');
 }
 
-// === ระบบนับคนออนไลน์ ===
+// === ออนไลน์ ===
 function trackOnlineUsers(){
   const userRef = db.ref('onlineUsers/' + generateUserId());
   const connectedRef = db.ref('.info/connected');
@@ -298,8 +295,8 @@ function trackOnlineUsers(){
   db.ref('onlineUsers').on('value', snapshot => {
     const data = snapshot.val() || {};
     const count = Object.keys(data).length;
-    const counter = document.getElementById('onlineCount');
-    counter.textContent = `🟢 ออนไลน์อยู่ตอนนี้ ${count} คน`;
+    document.getElementById('onlineCount').textContent =
+      `🟢 ออนไลน์อยู่ตอนนี้ ${count} คน`;
   });
 }
 
@@ -312,7 +309,7 @@ function generateUserId(){
   return uid;
 }
 
-// === โหลดสถานะ poll ===
+// === โหลด poll status ===
 window.onload = () => {
   trackOnlineUsers();
 
