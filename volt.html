@@ -119,6 +119,7 @@
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
 // === CONFIG ===
@@ -134,106 +135,146 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const auth = firebase.auth();
 
+let deviceUID = null;   // UID ระดับเครื่อง (ข้าม browser)
 let pollOpen = true;
 let pollRound = null;
+
 const ADMIN_PASSWORD = "t1234";
 
-// === หน้า ===
+/* =========================================================
+   1) Login ด้วย Anonymous Auth → ได้ deviceUID
+   ========================================================= */
+auth.signInAnonymously()
+  .then(user => {
+    deviceUID = user.user.uid;
+    console.log("DEVICE UID:", deviceUID);
+  })
+  .catch(err => {
+    console.error("Auth error:", err);
+  });
+
+/* =========================================================
+   UI Navigation
+   ========================================================= */
 function hideAll(){
   ['homePage','votePageTeam','votePageSolo','thankYou','adminPanel','adminResults']
     .forEach(id=>document.getElementById(id).style.display='none');
 }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 
-// === Team ===
 function showTeam(){
   hideAll();
   localStorage.setItem('currentMode','team');
   document.getElementById('votePageTeam').style.display='block';
 }
-
-// === Solo ===
 function showSolo(){
   hideAll();
   localStorage.setItem('currentMode','solo');
   document.getElementById('votePageSolo').style.display='block';
 }
 
-// === Vote ===
-function vote(option){
-  if(!pollOpen){ alert("โหวตปิดแล้ว"); return; }
+/* =========================================================
+   2) Vote system — ป้องกันโหวตซ้ำด้วย deviceUID จริง
+   ========================================================= */
+async function vote(option){
+  if(!pollOpen){
+    alert("โหวตปิดแล้ว");
+    return;
+  }
 
-  const mode = localStorage.getItem('currentMode');
-  if(mode==='team' && localStorage.getItem('votedTeam')){ alert("คุณโหวตแบบทีมแล้ว"); return; }
-  if(mode==='solo' && localStorage.getItem('votedSolo')){ alert("คุณโหวตแบบเดียวแล้ว"); return; }
+  if(!deviceUID){
+    alert("ระบบยังโหลดไม่เสร็จ กรุณารอสักครู่");
+    return;
+  }
 
-  const path = mode==='team' ? 'votesTeam/'+option : 'votesSolo/'+option;
-  db.ref(path).transaction(v => (v || 0) + 1);
+  const mode = localStorage.getItem("currentMode");
 
-  if(mode==='team') localStorage.setItem('votedTeam','true');
-  else localStorage.setItem('votedSolo','true');
+  const voteCheckRef = db.ref("deviceVotes/" + pollRound + "/" + deviceUID + "/" + mode);
 
-  hideAll();
-  document.getElementById('thankYou').style.display='block';
+  voteCheckRef.once("value").then(snapshot => {
+
+    if(snapshot.exists()){
+      alert("❌ อุปกรณ์นี้ได้โหวต " + (mode === 'team' ? 'แบบทีม' : 'แบบเดียว') + " แล้ว");
+      return;
+    }
+
+    const path = mode === 'team' ? 'votesTeam/' + option : 'votesSolo/' + option;
+    db.ref(path).transaction(v => (v || 0) + 1);
+
+    voteCheckRef.set(true);
+
+    hideAll();
+    document.getElementById("thankYou").style.display="block";
+  });
 }
 
-// === แสดงผลโหวต ===
+/* =========================================================
+   แสดงผลโหวต
+   ========================================================= */
 function displayResults(type, containerId){
   const ref = type==='team' ? db.ref('votesTeam') : db.ref('votesSolo');
   const container = document.getElementById(containerId);
-  container.innerHTML = "กำลังโหลด...";
 
   ref.once('value', snapshot => {
     const data = snapshot.val() || {};
     const total = Object.values(data).reduce((a,b)=>a+b,0);
-    container.innerHTML="";
+    container.innerHTML = "";
 
-    for(let opt in data){
-      const pct = total===0 ? 0 : Math.round((data[opt]/total)*100);
-      const color = type==='team' ? '#457B9D' : '#E76F51';
+    for (let opt in data){
+      const pct = total === 0 ? 0 : Math.round((data[opt] / total) * 100);
+      const color = type === 'team' ? '#457B9D' : '#E76F51';
 
       container.innerHTML += `
         <div style="text-align:left;margin-top:10px;">${opt}</div>
         <div class="bar-container">
-          <div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div>
+          <div class="bar" style="background:${color}; width:${pct}%;">
+            ${data[opt]} คะแนน (${pct}%)
+          </div>
         </div>
       `;
     }
   });
 }
 
-// === สรุป TOP 3 ===
+/* =========================================================
+   TOP 3
+   ========================================================= */
 function summarizeTopThree(type, summaryId){
   const ref = type === 'team' ? db.ref('votesTeam') : db.ref('votesSolo');
   const box = document.getElementById(summaryId);
 
-  ref.once('value', snapshot => {
-    const data = snapshot.val() || {};
+  ref.once('value', snap => {
+    const data = snap.val() || {};
 
     const ranking = Object.entries(data)
-      .map(([name, score])=>({name, score}))
-      .sort((a,b)=>b.score - a.score);
+      .map(([name, score]) => ({name, score}))
+      .sort((a,b) => b.score - a.score);
 
     if(ranking.length === 0){
       box.innerHTML = "ยังไม่มีคะแนนโหวต";
       return;
     }
 
-    let html = "<div style='background:#f1faee;padding:12px;border-radius:10px;'>"
-             + "🏆 <b>สรุปผลอันดับ 1 – 3</b><br><br>";
+    let html = `<div style="background:#f1faee;padding:12px;border-radius:10px;">
+      🏆 <b>สรุปอันดับ 1–3</b><br><br>
+    `;
 
-    ranking.slice(0,3).forEach((it, idx)=>{
-      const medals = ["🥇 อันดับ 1", "🥈 อันดับ 2", "🥉 อันดับ 3"];
-      html += `${medals[idx]} : <span style='color:#1d3557'>${it.name}</span> (${it.score} คะแนน)<br>`;
+    const medals = ["🥇 อันดับ 1", "🥈 อันดับ 2", "🥉 อันดับ 3"];
+
+    ranking.slice(0,3).forEach((item, idx)=>{
+      html += `${medals[idx]} : ${item.name} (${item.score} คะแนน)<br>`;
     });
-    html += "</div>";
 
+    html += "</div>";
     box.innerHTML = html;
   });
 }
 
-// === Admin ===
+/* =========================================================
+   Admin Panel
+   ========================================================= */
 function promptAdmin(){
   const pass = prompt("กรุณากรอกรหัส Admin:");
   if(pass === ADMIN_PASSWORD){
@@ -243,9 +284,8 @@ function promptAdmin(){
     alert("รหัสผ่านไม่ถูกต้อง");
   }
 }
-
 function closeAdminPanel(){ backHome(); }
-function backToAdmin(){ hideAll(); document.getElementById('adminPanel').style.display='block'; }
+function backToAdmin(){ hideAll(); document.getElementById('adminPanel').display='block'; }
 
 function adminOpenPoll(){
   pollOpen = true;
@@ -264,8 +304,9 @@ function adminResetPoll(){
     const newRound = Date.now();
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
-    db.ref('pollStatus').set({ open: true, round: newRound });
-    alert("รีเซ็ตโพลเรียบร้อยแล้ว");
+    db.ref('deviceVotes').remove();
+    db.ref('pollStatus').set({open:true, round:newRound});
+    alert("รีเซ็ตโหวตเรียบร้อย");
   }
 }
 
@@ -280,9 +321,11 @@ function showAdminResults(){
   summarizeTopThree('solo','summarySolo');
 }
 
-// === ออนไลน์ ===
+/* =========================================================
+   ออนไลน์ count
+   ========================================================= */
 function trackOnlineUsers(){
-  const userRef = db.ref('onlineUsers/' + generateUserId());
+  const userRef = db.ref('onlineUsers/' + Math.random().toString(36).substr(2,9));
   const connectedRef = db.ref('.info/connected');
 
   connectedRef.on('value', snap => {
@@ -293,44 +336,31 @@ function trackOnlineUsers(){
   });
 
   db.ref('onlineUsers').on('value', snapshot => {
-    const data = snapshot.val() || {};
-    const count = Object.keys(data).length;
+    const count = Object.keys(snapshot.val() || {}).length;
     document.getElementById('onlineCount').textContent =
       `🟢 ออนไลน์อยู่ตอนนี้ ${count} คน`;
   });
 }
 
-function generateUserId(){
-  let uid = localStorage.getItem('userSessionId');
-  if(!uid){
-    uid = "user_" + Math.random().toString(36).substr(2,9);
-    localStorage.setItem('userSessionId', uid);
-  }
-  return uid;
-}
-
-// === โหลด poll status ===
+/* =========================================================
+   โหลดสถานะโพล
+   ========================================================= */
 window.onload = () => {
+
   trackOnlineUsers();
 
   const pollRef = db.ref('pollStatus');
   pollRef.on('value', snapshot => {
-    const status = snapshot.val() || { open:true, round:0 };
+    const status = snapshot.val() || {open:true, round:0};
     pollOpen = status.open;
     pollRound = status.round;
 
-    const savedRound = localStorage.getItem('voteRound');
-    if(savedRound !== String(pollRound)){
-      localStorage.removeItem('votedTeam');
-      localStorage.removeItem('votedSolo');
-      localStorage.setItem('voteRound', pollRound);
-    }
-
     const pollStatusText = document.getElementById('pollStatusText');
-    pollStatusText.textContent = pollOpen ? "🟢 ตอนนี้เปิดให้โหวต" : "🔴 ขณะนี้ปิดโหวต";
+    pollStatusText.textContent = pollOpen ? "🟢 เปิดโหวต" : "🔴 ปิดโหวต";
     pollStatusText.style.color = pollOpen ? "#2a9d8f" : "#e63946";
   });
 };
+
 </script>
 
 </body>
