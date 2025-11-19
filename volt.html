@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>โหวตประกวดการแต่งกาย</title>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
   body {
@@ -62,7 +63,7 @@
 <div id="votePageTeam" class="container">
   <h2>โหวตการแต่งกายแบบทีม</h2>
   <button class="option-team" onclick="vote('ทีมงานอนอัว (QC)')">No.1 ทีมงานอนอัว (QC)</button>
-  <button class="option-team" onclick="vote('สวยให้ 5 มั่นหน้าให้ 10 (PAN')">No.2 สวยให้ 5 มั่นหน้าให้ 10 (PAN)</button>
+  <button class="option-team" onclick="vote('สวยให้ 5 มั่นหน้าให้ 10 (PAN)')">No.2 สวยให้ 5 มั่นหน้าให้ 10 (PAN)</button>
   <button class="option-team" onclick="vote('เจ้าภาพกฐิน (WH)')">No.3 เจ้าภาพกฐิน (WH)</button>
   <button class="option-team" onclick="vote('คนดีไม่ห่างเหิน (INJ)')">No.4 คนดีไม่ห่างเหิน (INJ)</button>
   <button class="admin-btn" onclick="backHome()">กลับ</button>
@@ -139,46 +140,75 @@ let pollOpen = true;
 let pollRound = null;
 const ADMIN_PASSWORD = "t1234";
 
-// === หน้า ===
+// =====================================================
+//  Device ID (กันโหวตซ้ำ)
+// =====================================================
+function getDeviceId() {
+  let id = localStorage.getItem('deviceId');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('deviceId', id);
+  }
+  return id;
+}
+
+// =====================================================
+//  UI Navigation
+// =====================================================
 function hideAll(){
   ['homePage','votePageTeam','votePageSolo','thankYou','adminPanel','adminResults']
     .forEach(id=>document.getElementById(id).style.display='none');
 }
 function backHome(){ hideAll(); document.getElementById('homePage').style.display='block'; }
 
-// === Team ===
+// Team
 function showTeam(){
   hideAll();
   localStorage.setItem('currentMode','team');
   document.getElementById('votePageTeam').style.display='block';
 }
 
-// === Solo ===
+// Solo
 function showSolo(){
   hideAll();
   localStorage.setItem('currentMode','solo');
   document.getElementById('votePageSolo').style.display='block';
 }
 
-// === Vote ===
+// =====================================================
+//    ระบบโหวต (เวอร์ชันป้องกันโหวตซ้ำ)
+// =====================================================
 function vote(option){
-  if(!pollOpen){ alert("โหวตปิดแล้ว"); return; }
+  if(!pollOpen){
+    alert("โหวตปิดแล้ว");
+    return;
+  }
 
   const mode = localStorage.getItem('currentMode');
-  if(mode==='team' && localStorage.getItem('votedTeam')){ alert("คุณโหวตแบบทีมแล้ว"); return; }
-  if(mode==='solo' && localStorage.getItem('votedSolo')){ alert("คุณโหวตแบบเดียวแล้ว"); return; }
+  const deviceId = getDeviceId();
+  const voteCheckRef = db.ref("deviceVotes/" + pollRound + "/" + deviceId + "/" + mode);
 
-  const path = mode==='team' ? 'votesTeam/'+option : 'votesSolo/'+option;
-  db.ref(path).transaction(v => (v || 0) + 1);
+  voteCheckRef.once("value").then(snapshot => {
+    if (snapshot.exists()) {
+      alert("❌ อุปกรณ์นี้ได้โหวต " + (mode==='team'?'แบบทีม':'แบบเดี่ยว') + " แล้ว");
+      return;
+    }
 
-  if(mode==='team') localStorage.setItem('votedTeam','true');
-  else localStorage.setItem('votedSolo','true');
+    // เพิ่มคะแนน
+    const path = mode === 'team' ? 'votesTeam/' + option : 'votesSolo/' + option;
+    db.ref(path).transaction(v => (v || 0) + 1);
 
-  hideAll();
-  document.getElementById('thankYou').style.display='block';
+    // บันทึกว่าห้ามโหวตซ้ำ
+    voteCheckRef.set(true);
+
+    hideAll();
+    document.getElementById('thankYou').style.display='block';
+  });
 }
 
-// === แสดงผลโหวต ===
+// =====================================================
+//    แสดงผลโหวต
+// =====================================================
 function displayResults(type, containerId){
   const ref = type==='team' ? db.ref('votesTeam') : db.ref('votesSolo');
   const container = document.getElementById(containerId);
@@ -196,14 +226,15 @@ function displayResults(type, containerId){
       container.innerHTML += `
         <div style="text-align:left;margin-top:10px;">${opt}</div>
         <div class="bar-container">
-          <div class="bar" style="background:${color};width:${pct}%">${data[opt]} คะแนน (${pct}%)</div>
+          <div class="bar" style="background:${color};width:${pct}%">
+            ${data[opt]} คะแนน (${pct}%)
+          </div>
         </div>
       `;
     }
   });
 }
 
-// === สรุป TOP 3 ===
 function summarizeTopThree(type, summaryId){
   const ref = type === 'team' ? db.ref('votesTeam') : db.ref('votesSolo');
   const box = document.getElementById(summaryId);
@@ -233,7 +264,9 @@ function summarizeTopThree(type, summaryId){
   });
 }
 
-// === Admin ===
+// =====================================================
+//   Admin
+// =====================================================
 function promptAdmin(){
   const pass = prompt("กรุณากรอกรหัส Admin:");
   if(pass === ADMIN_PASSWORD){
@@ -262,9 +295,13 @@ function adminClosePoll(){
 function adminResetPoll(){
   if(confirm("ต้องการรีเซ็ตโพลทั้งหมดหรือไม่?")){
     const newRound = Date.now();
+
     db.ref('votesTeam').remove();
     db.ref('votesSolo').remove();
+    db.ref('deviceVotes').remove();
+
     db.ref('pollStatus').set({ open: true, round: newRound });
+
     alert("รีเซ็ตโพลเรียบร้อยแล้ว");
   }
 }
@@ -280,7 +317,9 @@ function showAdminResults(){
   summarizeTopThree('solo','summarySolo');
 }
 
-// === ออนไลน์ ===
+// =====================================================
+// ออนไลน์
+// =====================================================
 function trackOnlineUsers(){
   const userRef = db.ref('onlineUsers/' + generateUserId());
   const connectedRef = db.ref('.info/connected');
@@ -309,7 +348,9 @@ function generateUserId(){
   return uid;
 }
 
-// === โหลด poll status ===
+// =====================================================
+// โหลด Poll Status
+// =====================================================
 window.onload = () => {
   trackOnlineUsers();
 
@@ -318,13 +359,6 @@ window.onload = () => {
     const status = snapshot.val() || { open:true, round:0 };
     pollOpen = status.open;
     pollRound = status.round;
-
-    const savedRound = localStorage.getItem('voteRound');
-    if(savedRound !== String(pollRound)){
-      localStorage.removeItem('votedTeam');
-      localStorage.removeItem('votedSolo');
-      localStorage.setItem('voteRound', pollRound);
-    }
 
     const pollStatusText = document.getElementById('pollStatusText');
     pollStatusText.textContent = pollOpen ? "🟢 ตอนนี้เปิดให้โหวต" : "🔴 ขณะนี้ปิดโหวต";
